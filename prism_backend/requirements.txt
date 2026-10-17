@@ -7,3 +7,4 @@ numpy>=1.26.0
 sqlalchemy>=2.0.25
 python-multipart>=0.0.9
 httpx>=0.27.0
+ultralytics>=8.1.0

@@ -13,17 +13,50 @@ class PotholeDetectorAdapter:
 
     def __init__(self):
         self.model_path = os.getenv("POTHOLE_MODEL_PATH", "")
-        self.conf_threshold = float(os.getenv("POTHOLE_CONFIDENCE_THRESHOLD", "0.45"))
+        self.conf_threshold = float(os.getenv("POTHOLE_CONFIDENCE_THRESHOLD", "0.25"))
         self._model = None
         self._load_model_if_present()
 
-    def _load_model_if_present(self):
+    def _find_or_fetch_model(self) -> str:
         if self.model_path and os.path.exists(self.model_path):
+            return self.model_path
+        
+        candidates = [
+            "prism_backend/models/best.pt",
+            "models/best.pt",
+            "prism_backend/models/best.onnx",
+            "models/best.onnx"
+        ]
+        for c in candidates:
+            if os.path.exists(c):
+                return c
+
+        # Auto-fetch pre-trained pothole YOLO weights from Hugging Face if missing
+        try:
+            target_dir = "models" if os.path.exists("main.py") else "prism_backend/models"
+            os.makedirs(target_dir, exist_ok=True)
+            target_file = os.path.join(target_dir, "best.pt")
+            if not os.path.exists(target_file):
+                import urllib.request
+                print(f"[MODEL] Fetching trained YOLOv8 pothole weights from Hugging Face...")
+                urllib.request.urlretrieve(
+                    "https://huggingface.co/peterhdd/pothole-detection-yolov8/resolve/main/best.pt",
+                    target_file
+                )
+                print(f"[MODEL] Pre-trained weights ready at: {target_file}")
+            return target_file
+        except Exception as e:
+            print(f"[MODEL] Model download skipped: {e}")
+            return ""
+
+    def _load_model_if_present(self):
+        model_file = self._find_or_fetch_model()
+        if model_file and os.path.exists(model_file):
+            self.model_path = model_file
             try:
-                # Optional import of ultralytics if user provides a .pt model
                 from ultralytics import YOLO
                 self._model = YOLO(self.model_path)
-                print(f"[MODEL] Loaded trained pothole detection model from: {self.model_path}")
+                print(f"[MODEL] Successfully loaded trained pothole detector: {self.model_path}")
             except Exception as e:
                 print(f"[MODEL] Warning: Model present at {self.model_path} but could not be loaded: {e}")
                 self._model = None
@@ -93,6 +126,8 @@ class PotholeDetectorAdapter:
                     conf = float(box.conf[0])
                     cls_id = int(box.cls[0])
                     name = self._model.names.get(cls_id, "pothole") if hasattr(self._model, "names") else "pothole"
+                    if str(name).strip() in ['0', '']:
+                        name = "pothole"
 
                     bx_w = max(0, coords[2] - coords[0])
                     bx_h = max(0, coords[3] - coords[1])
