@@ -1,7 +1,12 @@
 import axios from 'axios';
 
 // The client accesses the FastAPI server directly or via Vite proxy
-const PRISM_API_BASE = import.meta.env.VITE_PRISM_API_URL || 'http://127.0.0.1:8000';
+const defaultBaseUrl =
+  typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? 'https://prism-road-ai-backend.onrender.com'
+    : 'http://127.0.0.1:8000';
+
+const PRISM_API_BASE = import.meta.env.VITE_PRISM_API_URL || defaultBaseUrl;
 
 const client = axios.create({
   baseURL: PRISM_API_BASE,
