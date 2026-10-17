@@ -6,7 +6,7 @@ const router = Router();
 router.get('/', (_req: Request, res: Response) => {
   const healthcheck = {
     success: true,
-    message: 'Road Patrol AI API is running',
+    message: 'ROADVANTA API is running',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',

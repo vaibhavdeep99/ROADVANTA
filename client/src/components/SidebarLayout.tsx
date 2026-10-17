@@ -63,7 +63,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               </div>
               <div>
                 <span className="font-heading font-bold text-rp-text text-base tracking-tight flex items-center gap-1.5">
-                  ROADVANTA <span className="text-rp-accent text-[10px] px-1 py-0.2 rounded bg-rp-accent/15 border border-rp-accent/30">AI</span>
+                  ROADVANTA
                 </span>
                 <span className="text-[10px] text-rp-text-muted block leading-none">Smart Road & Infrastructure AI</span>
               </div>
@@ -218,7 +218,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               <div>
                 <div className="flex items-center justify-between pb-4 border-b border-rp-border">
                   <span className="font-heading font-bold text-sm text-rp-text flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-rp-accent" /> ROADVANTA AI
+                    <Shield className="w-4 h-4 text-rp-accent" /> ROADVANTA
                   </span>
                   <button onClick={() => setMobileSidebarOpen(false)} className="text-rp-text-muted">
                     <X className="w-5 h-5" />

@@ -65,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRole = 'citizen', onRoleC
             </div>
             <div>
               <span className="font-heading font-bold text-rp-text text-lg tracking-tight flex items-center gap-1.5">
-                ROADVANTA <span className="text-rp-accent text-xs px-1.5 py-0.5 rounded bg-rp-accent/10 border border-rp-accent/20">AI</span>
+                ROADVANTA
               </span>
               <p className="text-[10px] text-rp-text-muted leading-none hidden sm:block">
                 Detect. Predict. Protect.

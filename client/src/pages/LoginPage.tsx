@@ -79,7 +79,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialRegister = false })
         </div>
         <div>
           <span className="font-heading font-bold text-xl text-rp-text tracking-tight flex items-center gap-1.5">
-            ROADVANTA <span className="text-rp-accent text-xs px-1.5 py-0.5 rounded bg-rp-accent/15 border border-rp-accent/30">AI</span>
+            ROADVANTA
           </span>
           <span className="text-[10px] text-rp-text-muted block">Detect. Predict. Protect.</span>
         </div>
@@ -89,7 +89,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialRegister = false })
       <div className="bg-rp-card-elevated border border-rp-border rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative z-10">
         <div className="text-center mb-6">
           <h2 className="font-heading font-bold text-xl text-rp-text">
-            {isRegister ? 'Create Account' : 'Welcome to RoadVanta AI'}
+            {isRegister ? 'Create Account' : 'Welcome to ROADVANTA'}
           </h2>
           <p className="text-xs text-rp-text-muted mt-1">
             {isRegister ? 'Join citizens and authorities creating safer streets' : 'Select your role or enter credentials to sign in'}

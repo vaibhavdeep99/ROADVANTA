@@ -32,7 +32,7 @@ export const analyzeRoadImage = async (
       const model = genAI.getGenerativeModel({ model: config.gemini.model || 'gemini-2.0-flash' });
       const imgBuffer = buffer || fs.readFileSync(imagePathOrUrl);
 
-      const prompt = `You are Road Patrol AI, an expert computer vision model for road safety, municipal infrastructure, and accident prevention.
+      const prompt = `You are ROADVANTA, an expert computer vision model for road safety, municipal infrastructure, and accident prevention.
 Analyze this road hazard photo. Return ONLY a valid JSON object without markdown formatting, following this exact schema:
 {
   "category": "pothole" | "road_crack" | "broken_surface" | "road_debris" | "damaged_signal" | "damaged_barrier" | "waterlogging" | "road_obstruction" | "potential_accident" | "citizen_reported_accident" | "other",

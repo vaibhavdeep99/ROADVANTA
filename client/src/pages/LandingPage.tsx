@@ -470,7 +470,7 @@ const LandingPage = () => {
               </span>
             </motion.div>
             <motion.h2 variants={fadeInUp} custom={1} className="font-heading text-3xl sm:text-4xl font-bold text-rp-text mb-4">
-              How <span className="rp-gradient-text">RoadVanta AI</span> Works
+              How <span className="rp-gradient-text">ROADVANTA</span> Works
             </motion.h2>
             <motion.p variants={fadeInUp} custom={2} className="text-rp-text-secondary max-w-2xl mx-auto">
               A streamlined four-step workflow from detection to resolution, powered by AI 
@@ -656,7 +656,7 @@ const LandingPage = () => {
               <span className="rp-gradient-text">Real Action.</span>
             </motion.h2>
             <motion.p variants={fadeInUp} custom={1} className="text-rp-text-secondary max-w-2xl mx-auto">
-              RoadVanta AI connects citizens, technology, and government authorities 
+              ROADVANTA connects citizens, technology, and government authorities 
               to create safer roads through data-driven decisions.
             </motion.p>
           </motion.div>
@@ -713,7 +713,7 @@ const LandingPage = () => {
                   <span className="rp-gradient-text">Better Tomorrow</span>
                 </h2>
                 <p className="text-rp-text-secondary max-w-xl mx-auto mb-8">
-                  Join RoadVanta AI to report road hazards, help prioritize 
+                  Join ROADVANTA to report road hazards, help prioritize 
                   maintenance, and track how issues get resolved in your area.
                 </p>
 
@@ -787,7 +787,7 @@ const LandingPage = () => {
 
           <div className="border-t border-rp-border mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-rp-text-muted">
-              © {new Date().getFullYear()} RoadVanta AI. Built for Smart City Innovation.
+              © {new Date().getFullYear()} ROADVANTA. Built for Smart City Innovation.
             </p>
             <div className="flex items-center gap-4">
               <span className="text-xs text-rp-text-muted">
