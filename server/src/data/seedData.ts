@@ -1,0 +1,791 @@
+import { Report } from '../types';
+
+export const seedReports: Report[] = [
+  {
+    id: 'rp-seed-1',
+    reportNumber: 'RP-2026-1042',
+    reporterName: 'Aditya Sharma',
+    reporterEmail: 'aditya.sharma@example.com',
+    isAnonymous: false,
+    category: 'pothole',
+    title: 'Severe crater pothole near Silk Board junction',
+    description: 'Deep pothole approx 18 inches wide causing heavy vehicle slowdown and two-wheeler skids during evening traffic.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [77.6229, 12.9177], // Silk Board, Bangalore
+    },
+    address: 'Outer Ring Rd, Central Silk Board Flyover, BTM 2nd Stage',
+    wardOrZone: 'BTM Layout Ward 176',
+    city: 'Bengaluru',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'critical',
+    priorityScore: 94,
+    resolutionStatus: 'in_progress',
+    assignedDepartment: 'Public Works Department (PWD)',
+    assignedOfficer: 'Chief Engr. R. Narayan',
+    votes: 42,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['pothole', 'broken_surface'],
+      boundingBoxes: [
+        { x: 28, y: 35, width: 44, height: 38, label: 'Deep Pothole', confidence: 0.96 }
+      ],
+      modelConfidence: 0.96,
+      estimatedSeverity: 'critical',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T14:30:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Aditya Sharma', role: 'citizen', timestamp: '2026-10-15T14:30:00Z' },
+      { action: 'AI Hazard Verified', performedBy: 'System (Gemini Vision)', role: 'admin', timestamp: '2026-10-15T14:30:15Z' },
+      { action: 'Assigned to PWD Quick Action Team', performedBy: 'Traffic Control Hub', role: 'authority', timestamp: '2026-10-15T16:00:00Z' }
+    ],
+    createdAt: '2026-10-15T14:30:00Z',
+    updatedAt: '2026-10-15T16:00:00Z',
+  },
+  {
+    id: 'rp-seed-2',
+    reportNumber: 'RP-2026-1043',
+    reporterName: 'Priya Narayanan',
+    reporterEmail: 'priya.n@example.com',
+    isAnonymous: false,
+    category: 'waterlogging',
+    title: 'Severe monsoon water stagnation at Sony World signal',
+    description: 'Blocked stormwater drain causing waterlogging over 1.5 feet deep, flooding the pedestrian pathway.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [77.6358, 12.9345], // Koramangala 80ft Rd
+    },
+    address: '80 Feet Road, Sony World Signal, Koramangala 4th Block',
+    wardOrZone: 'Koramangala Ward 151',
+    city: 'Bengaluru',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'high',
+    priorityScore: 86,
+    resolutionStatus: 'assigned',
+    assignedDepartment: 'Storm Water Drainage & Municipal Corp (BBMP)',
+    assignedOfficer: 'Divisional Inspector S. Kumar',
+    votes: 31,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['waterlogging'],
+      boundingBoxes: [
+        { x: 15, y: 40, width: 70, height: 45, label: 'Severe Stagnant Water', confidence: 0.93 }
+      ],
+      modelConfidence: 0.93,
+      estimatedSeverity: 'high',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-16T08:12:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Priya Narayanan', role: 'citizen', timestamp: '2026-10-16T08:12:00Z' },
+      { action: 'Assigned to BBMP Drainage Wing', performedBy: 'Smart City Ops', role: 'authority', timestamp: '2026-10-16T09:30:00Z' }
+    ],
+    createdAt: '2026-10-16T08:12:00Z',
+    updatedAt: '2026-10-16T09:30:00Z',
+  },
+  {
+    id: 'rp-seed-3',
+    reportNumber: 'RP-2026-1044',
+    isAnonymous: true,
+    category: 'damaged_signal',
+    title: 'Traffic signal light knocked down / malfunctioning',
+    description: 'Traffic light post tilted 45 degrees after truck impact, blinking red continuously at 100 Feet Rd cross.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1508873696983-2df5293cb32b?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [77.6412, 12.9719], // Indiranagar 100ft road
+    },
+    address: '100 Feet Road, 12th Main Junction, Indiranagar',
+    wardOrZone: 'Indiranagar Ward 89',
+    city: 'Bengaluru',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'critical',
+    priorityScore: 92,
+    resolutionStatus: 'resolved',
+    assignedDepartment: 'Traffic Police & Electrical Engineering Wing',
+    assignedOfficer: 'Asst. Commissioner Verma',
+    votes: 56,
+    resolutionNotes: 'Post re-anchored, electrical harness replaced and automated signal timing synchronized.',
+    resolutionImageUrl: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80',
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['damaged_signal', 'road_obstruction'],
+      boundingBoxes: [
+        { x: 35, y: 10, width: 30, height: 65, label: 'Damaged Signal Pole', confidence: 0.95 }
+      ],
+      modelConfidence: 0.95,
+      estimatedSeverity: 'critical',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-14T11:05:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Anonymous Citizen', role: 'citizen', timestamp: '2026-10-14T11:05:00Z' },
+      { action: 'Verified & Dispatched Emergency Crew', performedBy: 'Traffic Ops', role: 'authority', timestamp: '2026-10-14T11:45:00Z' },
+      { action: 'Marked Resolved with Completion Proof', performedBy: 'Signal Maintenance Unit', role: 'authority', timestamp: '2026-10-14T16:20:00Z' }
+    ],
+    createdAt: '2026-10-14T11:05:00Z',
+    updatedAt: '2026-10-14T16:20:00Z',
+  },
+  {
+    id: 'rp-seed-4',
+    reportNumber: 'RP-2026-1045',
+    reporterName: 'Kavita Das',
+    reporterEmail: 'kavita.das@example.com',
+    isAnonymous: false,
+    category: 'road_crack',
+    title: 'Extensive longitudinal crocodile fissures on ITPL Main Rd',
+    description: 'Long asphalt fracture extending over 25 meters, beginning to cave under bus axle load.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [77.7289, 12.9863], // Whitefield, ITPL Main Road
+    },
+    address: 'ITPL Main Road, Pattandur Agrahara, Whitefield',
+    wardOrZone: 'Whitefield Ward 84',
+    city: 'Bengaluru',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'medium',
+    priorityScore: 68,
+    resolutionStatus: 'in_progress',
+    assignedDepartment: 'Road Resurfacing & Highway Authority',
+    votes: 19,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['road_crack', 'broken_surface'],
+      boundingBoxes: [
+        { x: 10, y: 30, width: 80, height: 40, label: 'Alligator Cracking', confidence: 0.91 }
+      ],
+      modelConfidence: 0.91,
+      estimatedSeverity: 'medium',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-16T15:20:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Kavita Das', role: 'citizen', timestamp: '2026-10-16T15:20:00Z' },
+      { action: 'Scheduled for Bitumen Seal Injection', performedBy: 'Highway Dept', role: 'authority', timestamp: '2026-10-17T06:00:00Z' }
+    ],
+    createdAt: '2026-10-16T15:20:00Z',
+    updatedAt: '2026-10-17T06:00:00Z',
+  },
+  {
+    id: 'rp-seed-5',
+    reportNumber: 'RP-2026-1046',
+    isAnonymous: true,
+    category: 'damaged_barrier',
+    title: 'Smashed median divider on Bellandur Flyover ramp',
+    description: 'Concrete guard rail broken outwards into the fast lane after midnight collision; exposed rebar poses tire puncture risk.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [77.6711, 12.9304], // Bellandur Flyover
+    },
+    address: 'Outer Ring Road, Bellandur Lake Overpass',
+    wardOrZone: 'Bellandur Ward 150',
+    city: 'Bengaluru',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'critical',
+    priorityScore: 91,
+    resolutionStatus: 'assigned',
+    assignedDepartment: 'Urban Road Infrastructure Development',
+    votes: 38,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['damaged_barrier', 'road_obstruction'],
+      boundingBoxes: [
+        { x: 20, y: 25, width: 60, height: 50, label: 'Broken Concrete Barrier', confidence: 0.97 }
+      ],
+      modelConfidence: 0.97,
+      estimatedSeverity: 'critical',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-17T02:15:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Anonymous', role: 'citizen', timestamp: '2026-10-17T02:15:00Z' },
+      { action: 'Emergency cones deployed', performedBy: 'Highway Patrol Unit', role: 'authority', timestamp: '2026-10-17T03:30:00Z' }
+    ],
+    createdAt: '2026-10-17T02:15:00Z',
+    updatedAt: '2026-10-17T03:30:00Z',
+  },
+  {
+    id: 'rp-seed-6',
+    reportNumber: 'RP-2026-1047',
+    reporterName: 'Vikram Joshi',
+    reporterEmail: 'vikram.j@example.com',
+    isAnonymous: false,
+    category: 'road_debris',
+    title: 'Unattended gravel & stone aggregate heap on road corner',
+    description: 'Construction material dumped directly on blind curve without warning signs or reflective indicators.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [77.5806, 12.9250], // Jayanagar 4th Block
+    },
+    address: '11th Main Road, 4th Block, Jayanagar',
+    wardOrZone: 'Jayanagar Ward 153',
+    city: 'Bengaluru',
+    verificationStatus: 'awaiting_verification',
+    estimatedSeverity: 'medium',
+    priorityScore: 62,
+    resolutionStatus: 'awaiting_verification',
+    votes: 14,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['road_debris', 'road_obstruction'],
+      boundingBoxes: [
+        { x: 30, y: 40, width: 45, height: 40, label: 'Loose Construction Gravel', confidence: 0.88 }
+      ],
+      modelConfidence: 0.88,
+      estimatedSeverity: 'medium',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-17T07:45:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Vikram Joshi', role: 'citizen', timestamp: '2026-10-17T07:45:00Z' }
+    ],
+    createdAt: '2026-10-17T07:45:00Z',
+    updatedAt: '2026-10-17T07:45:00Z',
+  },
+  {
+    id: 'rp-seed-7',
+    reportNumber: 'RP-2026-1048',
+    reporterName: 'Sunita Rao',
+    reporterEmail: 'sunita.rao@example.com',
+    isAnonymous: false,
+    category: 'citizen_reported_accident',
+    title: 'Multi-vehicle collision near Marathahalli Bridge',
+    description: 'Two cars involved in rear-end collision blocking middle lane, ambulance on site, traffic backing up 2km.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [77.6983, 12.9569], // Marathahalli
+    },
+    address: 'Old Airport Road, Marathahalli Bridge Underpass',
+    wardOrZone: 'Marathahalli Ward 85',
+    city: 'Bengaluru',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'critical',
+    priorityScore: 98,
+    resolutionStatus: 'in_progress',
+    assignedDepartment: 'Traffic Police & Emergency First Response',
+    assignedOfficer: 'Inspector Ananth Kumar',
+    votes: 73,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['citizen_reported_accident', 'road_obstruction'],
+      boundingBoxes: [
+        { x: 15, y: 20, width: 70, height: 60, label: 'Vehicle Collision Hazard', confidence: 0.98 }
+      ],
+      modelConfidence: 0.98,
+      estimatedSeverity: 'critical',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-17T08:30:00Z',
+    },
+    auditLogs: [
+      { action: 'Emergency Incident Logged', performedBy: 'Sunita Rao', role: 'citizen', timestamp: '2026-10-17T08:30:00Z' },
+      { action: 'Tow truck and traffic diversion active', performedBy: 'Traffic Control', role: 'authority', timestamp: '2026-10-17T08:42:00Z' }
+    ],
+    createdAt: '2026-10-17T08:30:00Z',
+    updatedAt: '2026-10-17T08:42:00Z',
+  },
+  {
+    id: 'rp-seed-8',
+    reportNumber: 'RP-2026-1049',
+    reporterName: 'Rahul Mehta',
+    isAnonymous: false,
+    category: 'pothole',
+    title: 'Cluster of 3 potholes on MG Road pedestrian crossing',
+    description: 'Cluster of potholes near Metro station entrance, sharp edges causing bike slippages during rains.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [77.6074, 12.9754], // MG Road
+    },
+    address: 'Mahatma Gandhi Rd, Near Trinity Metro Station',
+    wardOrZone: 'Shantala Nagar Ward 111',
+    city: 'Bengaluru',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'high',
+    priorityScore: 82,
+    resolutionStatus: 'resolved',
+    assignedDepartment: 'Public Works Department (PWD)',
+    assignedOfficer: 'Eng. Farhan Ali',
+    votes: 27,
+    resolutionNotes: 'Cold-mix asphalt patch completed and compacted with roller.',
+    resolutionImageUrl: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80',
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['pothole'],
+      boundingBoxes: [
+        { x: 30, y: 35, width: 35, height: 35, label: 'Pothole Cluster', confidence: 0.94 }
+      ],
+      modelConfidence: 0.94,
+      estimatedSeverity: 'high',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-13T10:00:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Rahul Mehta', role: 'citizen', timestamp: '2026-10-13T10:00:00Z' },
+      { action: 'Marked Resolved', performedBy: 'PWD Unit 4', role: 'authority', timestamp: '2026-10-14T14:00:00Z' }
+    ],
+    createdAt: '2026-10-13T10:00:00Z',
+    updatedAt: '2026-10-14T14:00:00Z',
+  },
+  {
+    id: 'rp-unnao-1',
+    reportNumber: 'RP-2026-2001',
+    reporterName: 'Sunil Verma',
+    reporterEmail: 'sunil.v@example.com',
+    isAnonymous: false,
+    category: 'pothole',
+    title: 'Severe crater pothole with water accumulation on NH-27',
+    description: 'Deep road crater approx 2 feet wide with exposed aggregate and muddy water on the expressway carriageway. Multiple two-wheelers and heavy vehicles swerving dangerously.',
+    originalImageUrl: '/uploads/kanpur_pothole_water.jpg',
+    location: {
+      type: 'Point',
+      coordinates: [80.4650, 26.5280], // NH 27, Unnao Bypass
+    },
+    address: 'NH-27 Highway, Near Unnao Bypass Flyover, Unnao',
+    wardOrZone: 'NHAI Corridor Sector 4',
+    city: 'Unnao',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'critical',
+    priorityScore: 95,
+    resolutionStatus: 'in_progress',
+    assignedDepartment: 'NHAI & UP Public Works Department',
+    assignedOfficer: 'Divisional Engr. R. K. Mishra',
+    votes: 48,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['pothole', 'broken_surface'],
+      boundingBoxes: [
+        { x: 22, y: 30, width: 55, height: 45, label: 'Deep Waterlogged Pothole', confidence: 0.97 }
+      ],
+      modelConfidence: 0.97,
+      estimatedSeverity: 'critical',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T09:15:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Sunil Verma', role: 'citizen', timestamp: '2026-10-15T09:15:00Z', details: 'Verified Field Inspection' },
+      { action: 'AI Verification Completed', performedBy: 'Gemini Vision 2.0', role: 'admin', timestamp: '2026-10-15T09:15:20Z' },
+      { action: 'Assigned to NHAI Highway Patrol', performedBy: 'Traffic Ops', role: 'authority', timestamp: '2026-10-15T10:30:00Z' }
+    ],
+    createdAt: '2026-10-15T09:15:00Z',
+    updatedAt: '2026-10-15T10:30:00Z',
+  },
+  {
+    id: 'rp-unnao-sinkhole',
+    reportNumber: 'RP-2026-2002',
+    reporterName: 'Prakash Chandra',
+    reporterEmail: 'prakash.c@expressway.in',
+    isAnonymous: false,
+    category: 'road_crack',
+    title: 'Massive 10-metre sinkhole on Expressway corridor near Km 421',
+    description: 'Heavy monsoon rains washed away embankment soil and compromised drainage channels, resulting in a large longitudinal collapse adjacent to the metal crash barrier.',
+    originalImageUrl: '/uploads/unnao_expressway_sinkhole.jpg',
+    location: {
+      type: 'Point',
+      coordinates: [80.5180, 26.5620], // Ganga Expressway Connector / Km 421, Unnao
+    },
+    address: 'Ganga Expressway Km 421, Asoha - Unnao Section',
+    wardOrZone: 'Expressway Maintenance Zone 2',
+    city: 'Unnao',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'critical',
+    priorityScore: 98,
+    resolutionStatus: 'in_progress',
+    assignedDepartment: 'UP Expressway Industrial Development Authority (UPEIDA)',
+    assignedOfficer: 'Chief Project Engr. V. K. Singh',
+    votes: 84,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['road_crack', 'damaged_barrier'],
+      boundingBoxes: [
+        { x: 10, y: 15, width: 80, height: 60, label: 'Massive Embankment Collapse & Sinkhole', confidence: 0.98 }
+      ],
+      modelConfidence: 0.98,
+      estimatedSeverity: 'critical',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T11:00:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Prakash Chandra', role: 'citizen', timestamp: '2026-10-15T11:00:00Z', details: 'High-Priority Structural Alert' },
+      { action: 'Emergency Traffic Diversion Enacted', performedBy: 'Highway Control', role: 'authority', timestamp: '2026-10-15T11:45:00Z' }
+    ],
+    createdAt: '2026-10-15T11:00:00Z',
+    updatedAt: '2026-10-15T11:45:00Z',
+  },
+  {
+    id: 'rp-unnao-2',
+    reportNumber: 'RP-2026-2003',
+    reporterName: 'Amit Tiwari',
+    isAnonymous: true,
+    category: 'damaged_barrier',
+    title: 'Smashed median guardrail at Ganga Bridge approach',
+    description: 'Bent metal beam crash barrier encroaching onto the bridge ramp after a truck collision.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [80.3850, 26.4880], // Ganga Bridge Approach, Shuklaganj
+    },
+    address: 'Shuklaganj - Ganga Bridge Ramp, Unnao-Kanpur Border',
+    wardOrZone: 'Ganga Bridge Corridor',
+    city: 'Shuklaganj',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'high',
+    priorityScore: 89,
+    resolutionStatus: 'assigned',
+    assignedDepartment: 'Bridge & Highway Maintenance Division',
+    votes: 35,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['damaged_barrier', 'road_obstruction'],
+      boundingBoxes: [
+        { x: 20, y: 25, width: 60, height: 50, label: 'Damaged Crash Barrier', confidence: 0.94 }
+      ],
+      modelConfidence: 0.94,
+      estimatedSeverity: 'high',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T14:20:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Anonymous Citizen', role: 'citizen', timestamp: '2026-10-15T14:20:00Z' }
+    ],
+    createdAt: '2026-10-15T14:20:00Z',
+    updatedAt: '2026-10-15T14:20:00Z',
+  },
+  {
+    id: 'rp-kanpur-3',
+    reportNumber: 'RP-2026-2004',
+    reporterName: 'Neha Gupta',
+    isAnonymous: false,
+    category: 'waterlogging',
+    title: 'Severe waterlogging at Old Ganga Bridge underpass',
+    description: 'Stagnant water level up to 1.5 feet blocking smaller vehicles and two-wheelers entering Kanpur city.',
+    originalImageUrl: '/uploads/kanpur_pothole_water.jpg',
+    location: {
+      type: 'Point',
+      coordinates: [80.3680, 26.4750], // Old Ganga Bridge Underpass, Kanpur
+    },
+    address: 'Old Ganga Bridge Underpass, Shukla Ganj Road, Kanpur',
+    wardOrZone: 'Kanpur East Ward 12',
+    city: 'Kanpur',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'high',
+    priorityScore: 86,
+    resolutionStatus: 'in_progress',
+    assignedDepartment: 'Kanpur Municipal Corporation (KMC) Drainage',
+    votes: 41,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['waterlogging'],
+      boundingBoxes: [
+        { x: 15, y: 40, width: 70, height: 45, label: 'Flooded Underpass', confidence: 0.95 }
+      ],
+      modelConfidence: 0.95,
+      estimatedSeverity: 'high',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T06:00:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Neha Gupta', role: 'citizen', timestamp: '2026-10-15T06:00:00Z' }
+    ],
+    createdAt: '2026-10-15T06:00:00Z',
+    updatedAt: '2026-10-15T06:00:00Z',
+  },
+  {
+    id: 'rp-kanpur-4',
+    reportNumber: 'RP-2026-2005',
+    reporterName: 'Vivek Saxena',
+    isAnonymous: false,
+    category: 'damaged_signal',
+    title: 'Traffic signal light failure at Mall Road crossing',
+    description: 'Signals blinking red in all directions, causing severe gridlock on the main entry to Kanpur central market.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1508873696983-2df5293cb32b?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [80.3420, 26.4680], // Mall Road, Kanpur
+    },
+    address: 'Mall Road Crossing, Near Phool Bagh, Kanpur',
+    wardOrZone: 'Civil Lines Sector 2',
+    city: 'Kanpur',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'medium',
+    priorityScore: 78,
+    resolutionStatus: 'assigned',
+    assignedDepartment: 'Kanpur Traffic Police & Electrical Wing',
+    votes: 29,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['damaged_signal'],
+      boundingBoxes: [
+        { x: 35, y: 12, width: 28, height: 65, label: 'Unsynchronized Signal Head', confidence: 0.92 }
+      ],
+      modelConfidence: 0.92,
+      estimatedSeverity: 'medium',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T07:30:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Vivek Saxena', role: 'citizen', timestamp: '2026-10-15T07:30:00Z' }
+    ],
+    createdAt: '2026-10-15T07:30:00Z',
+    updatedAt: '2026-10-15T07:30:00Z',
+  },
+  {
+    id: 'rp-lucknow-1',
+    reportNumber: 'RP-2026-2006',
+    reporterName: 'Rohan Srivastava',
+    isAnonymous: false,
+    category: 'pothole',
+    title: 'Continuous pothole depression near Transport Nagar Metro',
+    description: 'Series of potholes spanning over 20 meters on Kanpur Road near Transport Nagar exit, causing sudden braking and rear-end risks.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [80.8920, 26.7890], // Transport Nagar, Lucknow
+    },
+    address: 'Kanpur - Lucknow Road, Near Transport Nagar Metro Pillar 44, Lucknow',
+    wardOrZone: 'Sarojini Nagar Zone',
+    city: 'Lucknow',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'high',
+    priorityScore: 88,
+    resolutionStatus: 'in_progress',
+    assignedDepartment: 'Lucknow Development Authority (LDA) Roads',
+    votes: 38,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['pothole', 'broken_surface'],
+      boundingBoxes: [
+        { x: 25, y: 35, width: 50, height: 40, label: 'Pavement Depression Cluster', confidence: 0.93 }
+      ],
+      modelConfidence: 0.93,
+      estimatedSeverity: 'high',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T08:45:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Rohan Srivastava', role: 'citizen', timestamp: '2026-10-15T08:45:00Z' }
+    ],
+    createdAt: '2026-10-15T08:45:00Z',
+    updatedAt: '2026-10-15T08:45:00Z',
+  },
+  {
+    id: 'rp-lucknow-2',
+    reportNumber: 'RP-2026-2007',
+    reporterName: 'Kavita Awasthi',
+    isAnonymous: true,
+    category: 'citizen_reported_accident',
+    title: 'Traffic congestion and skid risk near Alambagh Chauraha',
+    description: 'Road surface loose gravel and uneven asphalt causing severe traffic slowdown and motorcycle skidding during peak morning hours.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [80.9150, 26.8180], // Alambagh, Lucknow
+    },
+    address: 'Alambagh Chauraha Junction, Lucknow',
+    wardOrZone: 'Alambagh Ward 31',
+    city: 'Lucknow',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'medium',
+    priorityScore: 76,
+    resolutionStatus: 'assigned',
+    assignedDepartment: 'Lucknow Traffic Police',
+    votes: 27,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['road_obstruction'],
+      boundingBoxes: [
+        { x: 30, y: 20, width: 45, height: 50, label: 'Surface Debris & Skid Zone', confidence: 0.89 }
+      ],
+      modelConfidence: 0.89,
+      estimatedSeverity: 'medium',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T12:10:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Anonymous Citizen', role: 'citizen', timestamp: '2026-10-15T12:10:00Z' }
+    ],
+    createdAt: '2026-10-15T12:10:00Z',
+    updatedAt: '2026-10-15T12:10:00Z',
+  },
+  {
+    id: 'rp-mohan-road-1',
+    reportNumber: 'RP-2026-2008',
+    reporterName: 'Deepak Shukla',
+    isAnonymous: false,
+    category: 'pothole',
+    title: 'Severe single-lane road crater on SH-58 Mohan Road',
+    description: 'Broken edge tarmac and deep crater on the alternative Hasanganj-Mohan route. Vehicles must cross oncoming lane to bypass.',
+    originalImageUrl: '/uploads/kanpur_pothole_water.jpg',
+    location: {
+      type: 'Point',
+      coordinates: [80.5950, 26.7620], // SH-58 Mohan Road corridor
+    },
+    address: 'State Highway 58, Near Hasanganj Crossing, Unnao-Lucknow Border',
+    wardOrZone: 'Hasanganj Rural Division',
+    city: 'Hasanganj',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'high',
+    priorityScore: 84,
+    resolutionStatus: 'submitted',
+    assignedDepartment: 'UP State Highway Division',
+    votes: 31,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['pothole', 'broken_surface'],
+      boundingBoxes: [
+        { x: 20, y: 28, width: 58, height: 44, label: 'Unpaved Edge Crater', confidence: 0.94 }
+      ],
+      modelConfidence: 0.94,
+      estimatedSeverity: 'high',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T10:20:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Deepak Shukla', role: 'citizen', timestamp: '2026-10-15T10:20:00Z' }
+    ],
+    createdAt: '2026-10-15T10:20:00Z',
+    updatedAt: '2026-10-15T10:20:00Z',
+  },
+  {
+    id: 'rp-varanasi-gt-1',
+    reportNumber: 'RP-2026-2009',
+    reporterName: 'Manoj Pandey',
+    isAnonymous: false,
+    category: 'pothole',
+    title: 'Deep crater potholes on NH-19 Fatehpur Bypass',
+    description: 'Heavy truck lane on GT Road has repeated crater potholes caused by overloaded freight trailers.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [80.8120, 25.9280], // NH 19 Fatehpur Bypass
+    },
+    address: 'NH-19 Grand Trunk Road, Fatehpur Bypass Flyover, UP',
+    wardOrZone: 'NHAI Project Implementation Unit Prayagraj',
+    city: 'Fatehpur',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'high',
+    priorityScore: 91,
+    resolutionStatus: 'in_progress',
+    assignedDepartment: 'NHAI PIU Prayagraj',
+    votes: 52,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['pothole', 'broken_surface'],
+      boundingBoxes: [
+        { x: 18, y: 32, width: 62, height: 42, label: 'Heavy Truck Lane Crater', confidence: 0.96 }
+      ],
+      modelConfidence: 0.96,
+      estimatedSeverity: 'high',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T07:15:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Manoj Pandey', role: 'citizen', timestamp: '2026-10-15T07:15:00Z' }
+    ],
+    createdAt: '2026-10-15T07:15:00Z',
+    updatedAt: '2026-10-15T07:15:00Z',
+  },
+  {
+    id: 'rp-varanasi-gt-2',
+    reportNumber: 'RP-2026-2010',
+    reporterName: 'Sanjay Yadav',
+    isAnonymous: true,
+    category: 'damaged_barrier',
+    title: 'Fractured expansion joint and ramp barrier on NH-19 Shastri Bridge',
+    description: 'Expansion joint teeth exposed on the southern bridge approach towards Varanasi, causing tire punctures and traffic queuing.',
+    originalImageUrl: 'https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?auto=format&fit=crop&w=800&q=80',
+    location: {
+      type: 'Point',
+      coordinates: [81.8680, 25.4120], // Shastri Bridge approach, Prayagraj
+    },
+    address: 'NH-19 Shastri Bridge Ramp, Naini, Prayagraj',
+    wardOrZone: 'Prayagraj Transit Division',
+    city: 'Prayagraj',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'critical',
+    priorityScore: 94,
+    resolutionStatus: 'assigned',
+    assignedDepartment: 'NHAI Bridge Engineering Wing',
+    votes: 63,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['damaged_barrier', 'road_crack'],
+      boundingBoxes: [
+        { x: 15, y: 20, width: 70, height: 55, label: 'Exposed Bridge Joint & Curb Fracture', confidence: 0.95 }
+      ],
+      modelConfidence: 0.95,
+      estimatedSeverity: 'critical',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T13:40:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Anonymous Citizen', role: 'citizen', timestamp: '2026-10-15T13:40:00Z' }
+    ],
+    createdAt: '2026-10-15T13:40:00Z',
+    updatedAt: '2026-10-15T13:40:00Z',
+  },
+  {
+    id: 'rp-varanasi-entry',
+    reportNumber: 'RP-2026-2011',
+    reporterName: 'Anand Mishra',
+    isAnonymous: false,
+    category: 'waterlogging',
+    title: 'Severe waterlogging and asphalt depression at Mohansarai intersection',
+    description: 'Major gateway entry into Varanasi from NH-19 flooded with 1 foot water after intermittent rainfall, concealing deep potholes.',
+    originalImageUrl: '/uploads/kanpur_pothole_water.jpg',
+    location: {
+      type: 'Point',
+      coordinates: [82.9150, 25.2850], // Mohansarai, Varanasi
+    },
+    address: 'GT Road Mohansarai Chauraha, Varanasi, UP',
+    wardOrZone: 'Varanasi South Gateway Ward',
+    city: 'Varanasi',
+    verificationStatus: 'verified',
+    estimatedSeverity: 'high',
+    priorityScore: 89,
+    resolutionStatus: 'in_progress',
+    assignedDepartment: 'Varanasi Nagar Nigam & NHAI',
+    votes: 45,
+    detection: {
+      modelName: 'RoadVision-Gemini-2.0',
+      modelVersion: '2.4.0',
+      detectedCategories: ['waterlogging', 'pothole'],
+      boundingBoxes: [
+        { x: 18, y: 35, width: 65, height: 48, label: 'Flooded Road Inundation', confidence: 0.96 }
+      ],
+      modelConfidence: 0.96,
+      estimatedSeverity: 'high',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: '2026-10-15T15:10:00Z',
+    },
+    auditLogs: [
+      { action: 'Report Submitted', performedBy: 'Anand Mishra', role: 'citizen', timestamp: '2026-10-15T15:10:00Z' }
+    ],
+    createdAt: '2026-10-15T15:10:00Z',
+    updatedAt: '2026-10-15T15:10:00Z',
+  }
+];
