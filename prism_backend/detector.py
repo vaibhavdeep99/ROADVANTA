@@ -54,6 +54,8 @@ class PotholeDetectorAdapter:
         if model_file and os.path.exists(model_file):
             self.model_path = model_file
             try:
+                import torch
+                torch.set_num_threads(1)
                 from ultralytics import YOLO
                 self._model = YOLO(self.model_path)
                 print(f"[MODEL] Successfully loaded trained pothole detector: {self.model_path}")
@@ -116,7 +118,9 @@ class PotholeDetectorAdapter:
 
         # 2. Run genuine model inference
         try:
-            results = self._model.predict(image_np, conf=self.conf_threshold, verbose=False)
+            import torch
+            with torch.inference_mode():
+                results = self._model.predict(image_np, imgsz=640, conf=self.conf_threshold, verbose=False)
             detections: List[Dict[str, Any]] = []
             total_apparent_area = 0.0
 
