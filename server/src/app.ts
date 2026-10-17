@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -61,6 +62,21 @@ app.use(
   })
 );
 
+// Route normalization & DB connection assurance for Serverless (Vercel)
+app.use(async (req, res, next) => {
+  if (req.url.startsWith('/v1/')) {
+    req.url = `/api${req.url}`;
+  }
+  if (mongoose.connection.readyState === 0) {
+    try {
+      await connectDB();
+    } catch {
+      // Allow fallback
+    }
+  }
+  next();
+});
+
 // 3. Granular Rate Limiters to Prevent Abuse & Brute-Force
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -102,6 +118,7 @@ app.use('/uploads', express.static(uploadsPath));
 import assistantRoutes from './routes/assistant';
 
 // 6. API Endpoints
+app.use('/health', healthRoutes);
 app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/reports', reportsRoutes);
