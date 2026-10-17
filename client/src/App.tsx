@@ -9,6 +9,7 @@ import AuthorityDashboardPage from './pages/AuthorityDashboardPage';
 import ResolutionTrackingPage from './pages/ResolutionTrackingPage';
 import LoginPage from './pages/LoginPage';
 import AreaIntelligencePage from './pages/AreaIntelligencePage';
+import RouteHazardIntelligencePage from './pages/RouteHazardIntelligencePage';
 import ReportHazardPage from './pages/ReportHazardPage';
 import RoadSafetyDashboardPage from './pages/RoadSafetyDashboardPage';
 import GeminiRoadAssistant from './components/GeminiRoadAssistant';
