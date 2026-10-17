@@ -70,6 +70,7 @@ export interface AuditLogEntry {
 export interface Report {
   id: string;
   reportNumber: string;
+  reporterId?: string;
   reporterName?: string;
   reporterEmail?: string;
   isAnonymous?: boolean;

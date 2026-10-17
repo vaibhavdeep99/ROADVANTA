@@ -202,6 +202,12 @@ class ReportStore {
     return updated;
   }
 
+  public delete(id: string): boolean {
+    const existed = this.reports.delete(id);
+    if (existed) this.persist();
+    return existed;
+  }
+
   public vote(id: string, ip: string): { success: boolean; votes: number; message: string } {
     const report = this.reports.get(id);
     if (!report) return { success: false, votes: 0, message: 'Report not found' };

@@ -34,6 +34,14 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
   }
 };
 
+export const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+  if (!req.user) {
+    res.status(401).json({ success: false, error: { message: 'Authentication required. Please sign in.' } });
+    return;
+  }
+  next();
+};
+
 export const requireRole = (roles: string[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {

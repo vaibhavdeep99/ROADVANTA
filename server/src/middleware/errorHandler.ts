@@ -44,23 +44,32 @@ export const errorHandler = (
     statusCode = 400;
     message = 'Invalid ID format';
     isOperational = true;
+  } else if (err.name === 'MulterError') {
+    statusCode = 400;
+    message = (err as any).code === 'LIMIT_FILE_SIZE' ? 'Image file exceeds maximum 10MB limit.' : err.message;
+    isOperational = true;
   } else if ((err as any).code === 11000) {
     statusCode = 409;
-    message = 'Duplicate field value entered';
+    message = 'Duplicate record found';
     isOperational = true;
   } else if (err.name === 'JsonWebTokenError') {
     statusCode = 401;
-    message = 'Invalid token';
+    message = 'Invalid session token';
     isOperational = true;
   } else if (err.name === 'TokenExpiredError') {
     statusCode = 401;
-    message = 'Token expired';
+    message = 'Session token expired. Please log in again.';
     isOperational = true;
   }
 
-  // Log error in development
+  // Security: In production, mask unhandled 500 errors to prevent leaking internal stack/paths
+  if (statusCode === 500 && process.env.NODE_ENV === 'production') {
+    message = 'An unexpected internal error occurred. Please try again later.';
+  }
+
+  // Log detailed error only in development
   if (process.env.NODE_ENV === 'development') {
-    console.error('❌ Error:', {
+    console.error('❌ Error Log:', {
       statusCode,
       message: err.message,
       stack: err.stack,
