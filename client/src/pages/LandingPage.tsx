@@ -137,7 +137,7 @@ const LandingPage = () => {
               </div>
               <div>
                 <span className="font-heading font-bold text-rp-text text-lg tracking-tight">
-                  ROADVANTA
+                  PRISM ROAD
                 </span>
                 <span className="font-heading font-bold text-rp-accent text-lg ml-1">AI</span>
               </div>
@@ -238,40 +238,41 @@ const LandingPage = () => {
               <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-rp-accent/10 
                               border border-rp-accent/20 rounded-full mb-6">
                 <Zap className="w-4 h-4 text-rp-accent" />
-                <span className="text-rp-accent text-sm font-medium">
-                  AI-POWERED ROAD SAFETY PLATFORM
+                <span className="text-rp-accent text-sm font-medium tracking-wide">
+                  PRISM ROAD AI — INFRASTRUCTURE INTELLIGENCE
                 </span>
               </div>
 
               <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold 
                              leading-tight mb-6">
-                Making Every Road
+                See the Damage.
                 <br />
-                <span className="rp-gradient-text">Smarter</span> and{' '}
-                <span className="rp-gradient-text">Safer.</span>
+                <span className="rp-gradient-text">Map the Risk.</span>
+                <br />
+                <span className="text-rp-text">Fix Roads Smarter.</span>
               </h1>
 
               <p className="text-rp-text-secondary text-lg leading-relaxed mb-8 max-w-lg">
-                Detect road hazards, understand local safety risks, and help authorities 
-                turn road reports into actionable maintenance decisions.
+                AI-powered road damage detection, OpenCV vision enhancement lab, geospatial mapping,
+                severity estimation, and municipal maintenance prioritization.
               </p>
 
               <div className="flex flex-wrap gap-4">
-                <Link to="/route-intelligence" className="rp-btn-primary text-base px-6 py-3 shadow-glow-cyan">
-                  <Navigation className="w-5 h-5" />
-                  Route Hazard Intelligence
+                <Link to="/vision-lab" className="rp-btn-primary text-base px-6 py-3 shadow-glow-cyan">
+                  <Scan className="w-5 h-5" />
+                  Road Vision Lab
+                </Link>
+                <Link to="/video-lab" className="rp-btn-secondary text-base px-6 py-3">
+                  <Layers className="w-5 h-5" />
+                  Video Detection
                 </Link>
                 <Link to="/map" className="rp-btn-secondary text-base px-6 py-3">
                   <MapPin className="w-5 h-5" />
-                  Live Hazard Map
-                </Link>
-                <Link to="/detection" className="rp-btn-secondary text-base px-6 py-3">
-                  <Scan className="w-5 h-5" />
-                  AI Studio
+                  Live Road Map
                 </Link>
                 <Link to="/dashboard" className="rp-btn-secondary text-base px-6 py-3">
-                  <Layers className="w-5 h-5" />
-                  Authority Portal
+                  <BarChart3 className="w-5 h-5" />
+                  Dashboard
                 </Link>
               </div>
 

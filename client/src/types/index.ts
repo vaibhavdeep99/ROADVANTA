@@ -71,26 +71,32 @@ export interface Report {
   description: string;
   originalImageUrl: string;
   annotatedImageUrl?: string;
-  location: GeoJSONPoint;
+  location?: GeoJSONPoint;
+  latitude?: number;
+  longitude?: number;
   address: string;
   wardOrZone?: string;
   city?: string;
   reportedAt?: string;
-  verificationStatus: VerificationStatus;
+  reportedBy?: string;
+  verificationStatus?: VerificationStatus;
   estimatedSeverity: SeverityLevel;
   priorityScore: number;
   resolutionStatus: ResolutionStatus;
+  workflowStatus?: string;
+  isDemo?: boolean;
   assignedDepartment?: string;
   assignedOfficer?: string;
   assignedTo?: string;
   duplicateGroupId?: string;
-  votes: number;
+  votes?: number;
+  upvotesCount?: number;
   detection?: any;
   resolutionNotes?: string;
   resolutionImageUrl?: string;
   auditLogs?: any[];
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 // Detection Results

@@ -53,6 +53,17 @@ router.post('/area', (req: Request, res: Response) => {
 
     if (bounds) {
       filteredReports = reportStore.getAll({ bounds });
+    } else if (areaName) {
+      const all = reportStore.getAll();
+      const areaLower = String(areaName).toLowerCase();
+      const matched = all.filter((r) => {
+        const cityMatch = r.city && areaLower.includes(r.city.toLowerCase());
+        const addressMatch = r.address && r.address.toLowerCase().includes(areaLower);
+        const wardMatch = r.wardOrZone && r.wardOrZone.toLowerCase().includes(areaLower);
+        const titleMatch = r.title && r.title.toLowerCase().includes(areaLower);
+        return cityMatch || addressMatch || wardMatch || titleMatch;
+      });
+      filteredReports = matched.length > 0 ? matched : all;
     } else {
       // Default to all reports if no bounds provided
       filteredReports = reportStore.getAll();

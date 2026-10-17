@@ -48,12 +48,15 @@ class ReportStore {
         const raw = fs.readFileSync(DATA_FILE, 'utf-8');
         const list: Report[] = JSON.parse(raw);
         list.forEach((r) => this.reports.set(r.id, r));
-        console.log(`📦 Loaded ${this.reports.size} reports from persistent store.`);
-      } else {
-        seedReports.forEach((r) => this.reports.set(r.id, r));
-        this.persist();
-        console.log(`🌱 Initialized with ${this.reports.size} seed hazard reports.`);
       }
+      // Ensure all seed reports (including the 250 simulated hazards) are merged
+      seedReports.forEach((r) => {
+        if (!this.reports.has(r.id)) {
+          this.reports.set(r.id, r);
+        }
+      });
+      this.persist();
+      console.log(`📦 Loaded & synced ${this.reports.size} total reports in persistent store.`);
     } catch (e) {
       console.warn('⚠️ Could not load reports.json, falling back to seed reports', e);
       seedReports.forEach((r) => this.reports.set(r.id, r));

@@ -30,15 +30,29 @@ import {
 import { Navbar } from '../components/Navbar';
 
 const SECTORS = [
-  { id: 'silk-board', name: 'Silk Board & Outer Ring Road Corridor', ward: 'BTM / HSR Sector' },
-  { id: 'koramangala', name: 'Koramangala 80ft & Sony World Belt', ward: 'Ward 151' },
-  { id: 'indiranagar', name: 'Indiranagar 100 Feet Road Commercial Zone', ward: 'Ward 89' },
-  { id: 'whitefield', name: 'Whitefield ITPL Tech Corridor', ward: 'Ward 84' },
+  // Bengaluru Corridors (Preserved)
+  { id: 'silk-board', name: 'Silk Board & Outer Ring Road Corridor', city: 'Bengaluru', ward: 'BTM / HSR Sector', group: 'Bengaluru Corridors' },
+  { id: 'koramangala', name: 'Koramangala 80ft & Sony World Belt', city: 'Bengaluru', ward: 'Ward 151', group: 'Bengaluru Corridors' },
+  { id: 'indiranagar', name: 'Indiranagar 100 Feet Road Commercial Zone', city: 'Bengaluru', ward: 'Ward 89', group: 'Bengaluru Corridors' },
+  { id: 'whitefield', name: 'Whitefield ITPL Tech Corridor', city: 'Bengaluru', ward: 'Ward 84', group: 'Bengaluru Corridors' },
+
+  // Key Municipal Cities
+  { id: 'indore-metro', name: 'Indore Municipal Sector', city: 'Indore', ward: 'Indore Municipal Taskforce', group: 'Municipal Cities' },
+  { id: 'kanpur-metro', name: 'Kanpur Central & GT Road Zone', city: 'Kanpur', ward: 'Kanpur Nagar Nigam', group: 'Municipal Cities' },
+  { id: 'lucknow-metro', name: 'Lucknow Gomti Nagar & Transit Corridor', city: 'Lucknow', ward: 'Lucknow Nagar Nigam', group: 'Municipal Cities' },
+  { id: 'unnao-metro', name: 'Unnao Industrial Highway Zone', city: 'Unnao', ward: 'Unnao Municipality', group: 'Municipal Cities' },
+  { id: 'varanasi-metro', name: 'Varanasi Heritage & Cantonment Belt', city: 'Varanasi', ward: 'Varanasi Nagar Nigam', group: 'Municipal Cities' },
+
+  // Highway Corridors
+  { id: 'kanpur-lucknow-corridor', name: 'Kanpur–Lucknow NH-27 Corridor', city: 'Kanpur / Lucknow', ward: 'NH-27 Highway Taskforce', group: 'Highway Transit Corridors' },
+  { id: 'lucknow-unnao-corridor', name: 'Lucknow–Unnao NH-27 Highway', city: 'Lucknow / Unnao', ward: 'NH-27 Westbound Division', group: 'Highway Transit Corridors' },
+  { id: 'kanpur-varanasi-corridor', name: 'Kanpur–Varanasi NH-19 Corridor', city: 'Kanpur / Varanasi', ward: 'NH-19 Grand Trunk Highway', group: 'Highway Transit Corridors' },
 ];
 
 const COLORS = ['#06B6D4', '#F59E0B', '#EF4444', '#10B981', '#8B5CF6', '#EC4899'];
 
 export const AreaIntelligencePage: React.FC = () => {
+  const [sectorSearch, setSectorSearch] = useState('');
   const [selectedSector, setSelectedSector] = useState(SECTORS[0]);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -106,19 +120,52 @@ export const AreaIntelligencePage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search sector, city, or route..."
+                value={sectorSearch}
+                onChange={(e) => setSectorSearch(e.target.value)}
+                className="bg-rp-card border border-rp-border rounded-xl pl-3 pr-7 py-2 text-xs text-rp-text placeholder-rp-text-muted focus:outline-none focus:border-rp-accent w-44 sm:w-60"
+              />
+              {sectorSearch && (
+                <button
+                  type="button"
+                  onClick={() => setSectorSearch('')}
+                  className="absolute right-2.5 top-2 text-rp-text-muted hover:text-rp-text text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
             <select
               value={selectedSector.id}
               onChange={(e) => {
                 const found = SECTORS.find((s) => s.id === e.target.value);
                 if (found) setSelectedSector(found);
               }}
-              className="bg-rp-card border border-rp-border rounded-xl px-4 py-2.5 text-xs text-rp-text font-semibold focus:outline-none focus:border-rp-accent"
+              className="bg-rp-card border border-rp-border rounded-xl px-4 py-2.5 text-xs text-rp-text font-semibold focus:outline-none focus:border-rp-accent max-w-xs"
             >
-              {SECTORS.map((s) => (
-                <option key={s.id} value={s.id}>
-                  📍 {s.name}
-                </option>
-              ))}
+              {['Bengaluru Corridors', 'Municipal Cities', 'Highway Transit Corridors'].map((grp) => {
+                const groupItems = SECTORS.filter(
+                  (s) =>
+                    s.group === grp &&
+                    (sectorSearch === '' ||
+                      s.name.toLowerCase().includes(sectorSearch.toLowerCase()) ||
+                      s.city.toLowerCase().includes(sectorSearch.toLowerCase()))
+                );
+                if (groupItems.length === 0) return null;
+                return (
+                  <optgroup key={grp} label={`── ${grp} ──`}>
+                    {groupItems.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        📍 {s.name} ({s.city})
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
             </select>
 
             <button
@@ -150,13 +197,12 @@ export const AreaIntelligencePage: React.FC = () => {
               </div>
 
               <span
-                className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                  analyticsData.safetyIndex < 50
+                className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${analyticsData.safetyIndex < 50
                     ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                     : analyticsData.safetyIndex < 75
-                    ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                    : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                }`}
+                      ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                      : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                  }`}
               >
                 {analyticsData.riskLevel}
               </span>

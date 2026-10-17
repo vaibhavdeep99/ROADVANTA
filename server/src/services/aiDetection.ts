@@ -76,11 +76,8 @@ export const analyzeRoadImage = async (
 
   // 1. If Gemini API is available and image buffer exists, run AI Vision
   if (genAI && buffer) {
-    try {
-      const model = genAI.getGenerativeModel({ model: config.gemini.model || 'gemini-3.8-flash' });
-      const imgBuffer = buffer;
-
-      const prompt = `You are RoadVanta AI Vision Engine, an advanced, objective computer vision system for road safety and municipal engineering.
+    const imgBuffer = buffer;
+    const prompt = `You are RoadVanta AI Vision Engine, an advanced, objective computer vision system for road safety and municipal engineering.
 Analyze this image with technical rigor.
 
 EVALUATION RULES:
@@ -128,6 +125,8 @@ Return ONLY a valid JSON object matching this schema:
   ]
 }`;
 
+    try {
+      const model = genAI.getGenerativeModel({ model: config.gemini.model || 'gemini-3.8-flash' });
       const result = await model.generateContent([
         prompt,
         {
@@ -227,6 +226,64 @@ Return ONLY a valid JSON object matching this schema:
       };
     } catch (err: any) {
       console.warn('⚠️ Gemini AI vision call error:', err.message);
+      // If temporary high-demand / rate-limit, retry once with backoff
+      if (err.message?.includes('503') || err.message?.includes('429')) {
+        try {
+          await new Promise((r) => setTimeout(r, 1200));
+          const retryModel = genAI.getGenerativeModel({ model: config.gemini.model || 'gemini-3.8-flash' });
+          const retryResult = await retryModel.generateContent([
+            prompt,
+            {
+              inlineData: {
+                data: imgBuffer.toString('base64'),
+                mimeType: mimeType,
+              },
+            },
+          ]);
+          const text = retryResult.response.text().trim();
+          const cleanJson = text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+          const parsed = JSON.parse(cleanJson);
+          const rawCat = (parsed.category || '').toLowerCase();
+          let category: HazardCategory = 'other';
+          for (const valid of VALID_CATEGORIES) {
+            if (rawCat === valid || rawCat.includes(valid)) {
+              category = valid;
+              break;
+            }
+          }
+          const hasHazard = Boolean(parsed.hasHazard && category !== 'normal_road' && category !== 'unrelated');
+          const severity: SeverityLevel = hasHazard
+            ? (['low', 'medium', 'high', 'critical'].includes(parsed.severity) ? parsed.severity : 'medium')
+            : 'none';
+          return {
+            hasHazard,
+            detectedCategories: [category],
+            suggestedTitle: parsed.title || (hasHazard ? `${category.replace('_', ' ')} detected` : 'Normal Road Surface Detected'),
+            suggestedCategory: category,
+            suggestedSeverity: severity,
+            suggestedPriorityScore: hasHazard ? (parsed.priorityScore || 60) : 0,
+            confidence: parsed.confidence || 0.9,
+            explanation: parsed.explanation || (hasHazard ? 'Visible roadway hazard detected.' : 'No visible hazards found.'),
+            recommendedAction: parsed.recommendedAction || (hasHazard ? 'Conduct physical road inspection and schedule maintenance.' : 'No action required.'),
+            limitations: 'Optical surface analysis only.',
+            detection: {
+              modelName: modelIdentifier,
+              modelVersion: '3.8.0',
+              detectedCategories: [category],
+              boundingBoxes: [],
+              modelConfidence: parsed.confidence || 0.9,
+              estimatedSeverity: severity,
+              inferenceStatus: 'completed',
+              inferenceTimestamp: timestamp,
+            },
+            processingStatus: 'completed',
+            modelIdentifier,
+            timestamp,
+          };
+        } catch (retryErr: any) {
+          console.warn('⚠️ Gemini retry also failed:', retryErr.message);
+        }
+      }
     }
   }
 
@@ -336,30 +393,61 @@ const handleFallbackAnalysis = (
     };
   }
 
-  // Default pothole fallback when pothole is specified
-  const boxes: BoundingBox[] = [{ x: 25, y: 35, width: 50, height: 40, label: 'Pothole Depression', confidence: 0.92 }];
+  // If filename clearly indicates pothole
+  if (lower.includes('pothole') || lower.includes('crater') || lower.includes('cavity') || lower.includes('depression')) {
+    const boxes: BoundingBox[] = [{ x: 25, y: 35, width: 50, height: 40, label: 'Pothole Depression', confidence: 0.92 }];
+    const detection: DetectionResult = {
+      modelName: `${modelIdentifier} (Heuristic Fallback)`,
+      modelVersion: '1.0.0',
+      detectedCategories: ['pothole'],
+      boundingBoxes: boxes,
+      modelConfidence: 0.92,
+      estimatedSeverity: 'high',
+      inferenceStatus: 'completed',
+      inferenceTimestamp: timestamp,
+    };
+
+    return {
+      hasHazard: true,
+      detectedCategories: ['pothole'],
+      suggestedTitle: 'Road Surface Crater / Pothole Obstruction',
+      suggestedCategory: 'pothole',
+      suggestedSeverity: 'high',
+      suggestedPriorityScore: 85,
+      confidence: 0.92,
+      explanation: 'Surface asphalt cavitation with sharp edge degradation in active traffic corridor.',
+      recommendedAction: 'Triage with cold/hot-mix asphalt patch within 48 hours to prevent tire skidding.',
+      limitations: 'Visual analysis estimate. Does not replace on-site civil engineer assessment.',
+      detection,
+      processingStatus: 'completed',
+      modelIdentifier,
+      timestamp,
+    };
+  }
+
+  // Neutral / Undamaged Fallback: Never hallucinate false positives on normal roads
   const detection: DetectionResult = {
     modelName: `${modelIdentifier} (Heuristic Fallback)`,
     modelVersion: '1.0.0',
-    detectedCategories: ['pothole'],
-    boundingBoxes: boxes,
-    modelConfidence: 0.92,
-    estimatedSeverity: 'high',
+    detectedCategories: ['normal_road'],
+    boundingBoxes: [],
+    modelConfidence: 0.85,
+    estimatedSeverity: 'none',
     inferenceStatus: 'completed',
     inferenceTimestamp: timestamp,
   };
 
   return {
-    hasHazard: true,
-    detectedCategories: ['pothole'],
-    suggestedTitle: 'Road Surface Crater / Pothole Obstruction',
-    suggestedCategory: 'pothole',
-    suggestedSeverity: 'high',
-    suggestedPriorityScore: 85,
-    confidence: 0.92,
-    explanation: 'Surface asphalt cavitation with sharp edge degradation in active traffic corridor.',
-    recommendedAction: 'Triage with cold/hot-mix asphalt patch within 48 hours to prevent tire skidding.',
-    limitations: 'Visual analysis estimate. Does not replace on-site civil engineer assessment.',
+    hasHazard: false,
+    detectedCategories: ['normal_road'],
+    suggestedTitle: 'Normal Road Surface Detected',
+    suggestedCategory: 'normal_road',
+    suggestedSeverity: 'none',
+    suggestedPriorityScore: 0,
+    confidence: 0.85,
+    explanation: 'No hazardous surface cavitation, major structural cracking, or flooding detected.',
+    recommendedAction: 'Routine traffic surveillance; road segment appears operational.',
+    limitations: 'Visual analysis estimate. Does not substitute for on-site civil structural testing.',
     detection,
     processingStatus: 'completed',
     modelIdentifier,

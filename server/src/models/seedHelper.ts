@@ -14,14 +14,18 @@ export const seedDatabaseIfEmpty = async () => {
     }
 
     const count = await ReportModel.countDocuments();
-    if (count === 0) {
-      console.log(`🌱 Seeding MongoDB Atlas with ${seedReports.length} hazard reports...`);
-      await ReportModel.insertMany(seedReports);
-      console.log(`✅ Successfully seeded MongoDB Atlas with ${seedReports.length} reports!`);
+    if (count < seedReports.length) {
+      console.log(`🌱 Syncing MongoDB Atlas: found ${count} reports, ensuring all ${seedReports.length} seed hazards exist...`);
+      const existingIds = new Set(await ReportModel.distinct('id'));
+      const toInsert = seedReports.filter((r) => !existingIds.has(r.id));
+      if (toInsert.length > 0) {
+        await ReportModel.insertMany(toInsert, { ordered: false });
+        console.log(`✅ Successfully added ${toInsert.length} new hazards to MongoDB Atlas!`);
+      }
     } else {
-      console.log(`📊 MongoDB Atlas already contains ${count} reports.`);
+      console.log(`📊 MongoDB Atlas contains ${count} reports.`);
     }
   } catch (err: any) {
-    console.warn(`⚠️ Seeding warning: ${err.message}`);
+    console.warn(`⚠️ Seeding note: ${err.message}`);
   }
 };

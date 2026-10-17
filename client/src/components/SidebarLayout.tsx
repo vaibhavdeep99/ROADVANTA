@@ -18,6 +18,9 @@ import {
   ChevronRight,
   Navigation,
   BarChart3,
+  Sparkles,
+  Video,
+  Settings,
 } from 'lucide-react';
 import { JudgeDemoTour } from './JudgeDemoTour';
 
@@ -39,14 +42,13 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-    { name: 'Safety Stats', path: '/statistics', icon: <BarChart3 className="w-5 h-5" />, badge: 'MoRTH' },
-    { name: 'Route Intelligence', path: '/route-intelligence', icon: <Navigation className="w-5 h-5" />, badge: 'New' },
-    { name: 'Live Map', path: '/map', icon: <MapPin className="w-5 h-5" /> },
-    { name: 'AI Detection', path: '/detection', icon: <Scan className="w-5 h-5" />, badge: 'Live AI' },
-    { name: 'Reports', path: '/reports', icon: <FileText className="w-5 h-5" /> },
-    { name: 'Risk Analysis', path: '/intelligence', icon: <TrendingUp className="w-5 h-5" /> },
-    { name: 'Authority Portal', path: '/authority', icon: <ShieldAlert className="w-5 h-5" /> },
-    { name: 'Resolution Tracking', path: '/tracking', icon: <CheckCircle2 className="w-5 h-5" /> },
+    { name: 'Road Vision Lab', path: '/vision-lab', icon: <Sparkles className="w-5 h-5" />, badge: 'OpenCV' },
+    { name: 'Video Detection Lab', path: '/video-lab', icon: <Video className="w-5 h-5" />, badge: 'Frames' },
+    { name: 'Live Road Map', path: '/map', icon: <MapPin className="w-5 h-5" /> },
+    { name: 'Reports Registry', path: '/reports', icon: <FileText className="w-5 h-5" /> },
+    { name: 'Maintenance Priorities', path: '/authority', icon: <ShieldAlert className="w-5 h-5" />, badge: 'Priorities' },
+    { name: 'Road Analytics', path: '/statistics', icon: <BarChart3 className="w-5 h-5" /> },
+    { name: 'Model & Settings', path: '/settings', icon: <Settings className="w-5 h-5" />, badge: 'YOLO' },
   ];
 
   return (
@@ -65,9 +67,9 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               </div>
               <div>
                 <span className="font-heading font-bold text-rp-text text-base tracking-tight flex items-center gap-1.5">
-                  ROADVANTA
+                  PRISM ROAD AI
                 </span>
-                <span className="text-[10px] text-rp-text-muted block leading-none">Smart Road & Infrastructure AI</span>
+                <span className="text-[10px] text-rp-text-muted block leading-none">See Damage. Fix Smarter.</span>
               </div>
             </Link>
           </div>

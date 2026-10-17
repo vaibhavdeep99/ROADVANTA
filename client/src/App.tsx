@@ -12,6 +12,9 @@ import AreaIntelligencePage from './pages/AreaIntelligencePage';
 import RouteHazardIntelligencePage from './pages/RouteHazardIntelligencePage';
 import ReportHazardPage from './pages/ReportHazardPage';
 import RoadSafetyDashboardPage from './pages/RoadSafetyDashboardPage';
+import RoadVisionLabPage from './pages/RoadVisionLabPage';
+import VideoDetectionLabPage from './pages/VideoDetectionLabPage';
+import SettingsModelPage from './pages/SettingsModelPage';
 import GeminiRoadAssistant from './components/GeminiRoadAssistant';
 import './index.css';
 
@@ -51,6 +54,9 @@ function App() {
         <Route path="/route-intelligence" element={<RouteHazardIntelligencePage />} />
         <Route path="/route" element={<RouteHazardIntelligencePage />} />
         <Route path="/detection" element={<AiDetectionStudioPage />} />
+        <Route path="/vision-lab" element={<RoadVisionLabPage />} />
+        <Route path="/video-lab" element={<VideoDetectionLabPage />} />
+        <Route path="/settings" element={<SettingsModelPage />} />
         <Route path="/map" element={<MapPage />} />
         <Route path="/reports" element={<IncidentReportsPage />} />
         <Route path="/authority" element={<AuthorityDashboardPage />} />

@@ -38,17 +38,64 @@ const makeDotIcon = (color: string) => {
   });
 };
 
+import prismApi, { AnalyticsSummary, PrismReport } from '../services/prismApi';
+
 export const MainDashboardPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [mapCenter] = useState<[number, number]>([12.9345, 77.6358]); // Indore / Bangalore metro center
+  const [mapCenter, setMapCenter] = useState<[number, number]>([22.7196, 75.8577]);
 
   useEffect(() => {
+    // 1. Fetch live analytics summary from PRISM backend
+    prismApi.getAnalyticsSummary()
+      .then((s) => setSummary(s))
+      .catch((e) => console.warn('Could not fetch prism summary:', e));
+
+    // 2. Fetch reports
     const loadData = async () => {
       try {
+        const prismData = await prismApi.getReports();
+        if (prismData && prismData.length > 0) {
+          const mapped: Report[] = prismData.map((p) => ({
+            id: p.id,
+            reportNumber: p.report_number,
+            title: p.title,
+            description: p.description,
+            category: p.category as any,
+            estimatedSeverity: p.estimated_severity as any,
+            priorityScore: p.priority_score,
+            resolutionStatus: (p.workflow_status === 'resolved' ? 'resolved' : 'triaged') as any,
+            upvotesCount: p.detections_count || 1,
+            reportedBy: p.is_demo ? 'Field Patrol AI' : 'Citizen Inspector',
+            createdAt: p.created_at || new Date().toISOString(),
+            originalImageUrl: p.original_image_url?.startsWith('/uploads')
+              ? `http://127.0.0.1:8000${p.original_image_url}`
+              : p.original_image_url || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80',
+            city: p.city,
+            address: p.address,
+            latitude: p.latitude || 22.7196,
+            longitude: p.longitude || 75.8577,
+            isDemo: p.is_demo,
+          }));
+          setReports(mapped);
+          if (mapped[0]?.latitude && mapped[0]?.longitude) {
+            setMapCenter([mapped[0].latitude, mapped[0].longitude]);
+          }
+          return;
+        }
+      } catch (err) {
+        console.warn('Prism reports fallback:', err);
+      }
+
+      try {
         const res = await axios.get('/api/v1/reports');
-        if (res.data.success) {
+        if (res.data.success && Array.isArray(res.data.data)) {
           setReports(res.data.data);
+          if (res.data.data[0]?.location?.coordinates) {
+            const [lng, lat] = res.data.data[0].location.coordinates;
+            setMapCenter([lat, lng]);
+          }
         }
       } catch (e) {
         console.error(e);
@@ -57,11 +104,16 @@ export const MainDashboardPage: React.FC = () => {
     loadData();
   }, []);
 
+  const totalCount = summary?.total_reports ?? reports.length;
+  const awaitingCount = summary?.awaiting_inspection ?? reports.filter((r) => (r.workflowStatus === 'submitted' || r.resolutionStatus === 'submitted')).length;
+  const confirmedCount = summary?.confirmed_damage ?? reports.filter((r) => r.estimatedSeverity === 'high').length;
+  const resolvedCount = summary?.resolved_reports ?? reports.filter((r) => r.resolutionStatus === 'resolved').length;
+
   const stats = [
-    { title: 'Total Hazards', value: 248, change: '+12% from last week', isIncrease: true, icon: <AlertTriangle className="w-5 h-5 text-rp-accent" /> },
-    { title: 'Accidents', value: 18, change: '-5% from last week', isIncrease: false, icon: <Car className="w-5 h-5 text-rose-400" /> },
-    { title: 'Potholes', value: 96, change: '+8% from last week', isIncrease: true, icon: <CircleDot className="w-5 h-5 text-amber-400" /> },
-    { title: 'Traffic Signals', value: 12, change: '-2% from last week', isIncrease: false, icon: <Radio className="w-5 h-5 text-cyan-400" /> },
+    { title: 'Total Submitted', value: totalCount, change: 'Real database records', isIncrease: true, icon: <AlertTriangle className="w-5 h-5 text-rp-accent" /> },
+    { title: 'Awaiting Inspection', value: awaitingCount, change: 'Pending field review', isIncrease: true, icon: <Clock className="w-5 h-5 text-amber-400" /> },
+    { title: 'Confirmed Damage', value: confirmedCount, change: 'Priority maintenance candidates', isIncrease: false, icon: <Car className="w-5 h-5 text-rose-400" /> },
+    { title: 'Resolved Reports', value: resolvedCount, change: 'Repaired & verified', isIncrease: false, icon: <ShieldCheck className="w-5 h-5 text-emerald-400" /> },
   ];
 
   const categoryChips = ['All', 'Potholes', 'Accidents', 'Traffic Signals', 'Road Damage'];
@@ -135,11 +187,10 @@ export const MainDashboardPage: React.FC = () => {
                   <button
                     key={chip}
                     onClick={() => setActiveCategory(chip)}
-                    className={`text-[10px] px-2.5 py-1 rounded-md font-semibold transition-all whitespace-nowrap ${
-                      activeCategory === chip
+                    className={`text-[10px] px-2.5 py-1 rounded-md font-semibold transition-all whitespace-nowrap ${activeCategory === chip
                         ? 'bg-rp-accent text-rp-bg font-bold shadow-sm'
                         : 'bg-rp-card border border-rp-border text-rp-text-secondary hover:text-rp-text'
-                    }`}
+                      }`}
                   >
                     {chip}
                   </button>
@@ -166,10 +217,13 @@ export const MainDashboardPage: React.FC = () => {
                   else if (r.estimatedSeverity === 'high') color = '#F97316';
                   else if (r.estimatedSeverity === 'medium') color = '#F59E0B';
 
+                  const lat = r.latitude ?? (r.location ? r.location.coordinates[1] : 22.7196);
+                  const lng = r.longitude ?? (r.location ? r.location.coordinates[0] : 75.8577);
+
                   return (
                     <Marker
                       key={r.id}
-                      position={[r.location.coordinates[1], r.location.coordinates[0]]}
+                      position={[lat, lng]}
                       icon={makeDotIcon(color)}
                     >
                       <Popup>
@@ -247,13 +301,12 @@ export const MainDashboardPage: React.FC = () => {
                   </div>
 
                   <span
-                    className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0 ${
-                      r.estimatedSeverity === 'critical' || r.estimatedSeverity === 'high'
+                    className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0 ${r.estimatedSeverity === 'critical' || r.estimatedSeverity === 'high'
                         ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                         : r.estimatedSeverity === 'medium'
-                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                        : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                    }`}
+                          ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                          : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                      }`}
                   >
                     {r.estimatedSeverity}
                   </span>

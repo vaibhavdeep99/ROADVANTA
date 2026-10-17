@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node dist/server.js",
     "build": "tsc",
+    "seed": "node dist/scripts/seedAtlas.js",
     "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -12,9 +12,11 @@ import {
   CheckCircle2,
   ChevronRight,
   Eye,
+  Download,
 } from 'lucide-react';
 import { SidebarLayout } from '../components/SidebarLayout';
 import { Report } from '../types';
+import prismApi from '../services/prismApi';
 
 export const IncidentReportsPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
@@ -24,6 +26,39 @@ export const IncidentReportsPage: React.FC = () => {
 
   useEffect(() => {
     const fetchReports = async () => {
+      try {
+        const prismData = await prismApi.getReports();
+        if (prismData && prismData.length > 0) {
+          const mapped: Report[] = prismData.map((p) => ({
+            id: p.id,
+            reportNumber: p.report_number,
+            title: p.title,
+            description: p.description,
+            category: p.category as any,
+            estimatedSeverity: p.estimated_severity as any,
+            priorityScore: p.priority_score,
+            workflowStatus: p.workflow_status as any,
+            resolutionStatus: (p.workflow_status === 'resolved' ? 'resolved' : 'submitted') as any,
+            verificationStatus: p.verification_status as any,
+            city: p.city,
+            address: p.address,
+            latitude: p.latitude || 22.7196,
+            longitude: p.longitude || 75.8577,
+            originalImageUrl: p.original_image_url?.startsWith('/uploads')
+              ? `http://127.0.0.1:8000${p.original_image_url}`
+              : p.original_image_url || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80',
+            upvotesCount: p.detections_count || 1,
+            reportedBy: p.is_demo ? 'Simulated Inspection' : 'Verified Citizen',
+            createdAt: p.created_at || new Date().toISOString(),
+            isDemo: p.is_demo,
+          }));
+          setReports(mapped);
+          return;
+        }
+      } catch (err) {
+        console.warn('Prism backend fallback to node:', err);
+      }
+
       try {
         const res = await axios.get('/api/v1/reports');
         if (res.data.success) {
@@ -92,15 +127,27 @@ export const IncidentReportsPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 text-rp-text-muted absolute left-3 top-2.5" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search incidents..."
-              className="w-full pl-8 pr-3 py-1.5 bg-rp-card border border-rp-border rounded-lg text-xs text-rp-text placeholder:text-rp-text-muted focus:outline-none focus:border-rp-accent"
-            />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-60">
+              <Search className="w-3.5 h-3.5 text-rp-text-muted absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search incidents..."
+                className="w-full pl-8 pr-3 py-1.5 bg-rp-card border border-rp-border rounded-lg text-xs text-rp-text placeholder:text-rp-text-muted focus:outline-none focus:border-rp-accent"
+              />
+            </div>
+            <a
+              href="http://127.0.0.1:8000/api/reports/export"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-lg bg-rp-bg-secondary border border-rp-border text-rp-text hover:text-rp-accent text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+              title="Export all reports as CSV"
+            >
+              <Download className="w-3.5 h-3.5 text-rp-accent" />
+              <span className="hidden sm:inline">Export CSV</span>
+            </a>
           </div>
         </div>
 

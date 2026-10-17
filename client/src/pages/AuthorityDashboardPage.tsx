@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Report, ResolutionStatus, SeverityLevel } from '../types';
+import prismApi from '../services/prismApi';
 
 export const AuthorityDashboardPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
@@ -38,6 +39,40 @@ export const AuthorityDashboardPage: React.FC = () => {
 
   const fetchReports = async () => {
     setLoading(true);
+    try {
+      const prismReports = await prismApi.getReports();
+      if (prismReports && prismReports.length > 0) {
+        const mapped: Report[] = prismReports.map((p) => ({
+          id: p.id,
+          reportNumber: p.report_number,
+          title: p.title,
+          description: p.description,
+          category: p.category as any,
+          estimatedSeverity: p.estimated_severity as any,
+          priorityScore: p.priority_score,
+          resolutionStatus: (p.workflow_status === 'resolved' ? 'resolved' : p.workflow_status === 'under_inspection' || p.workflow_status === 'confirmed' ? 'in_progress' : 'triaged') as any,
+          upvotesCount: p.detections_count || 1,
+          reportedBy: p.is_demo ? 'Field Patrol AI' : 'Citizen Inspector',
+          createdAt: p.created_at || new Date().toISOString(),
+          assignedDepartment: 'Public Works Department (PWD)',
+          resolutionNotes: p.reviews && p.reviews.length > 0 ? p.reviews[p.reviews.length - 1].notes : '',
+          originalImageUrl: p.original_image_url?.startsWith('/uploads')
+            ? `http://127.0.0.1:8000${p.original_image_url}`
+            : p.original_image_url || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80',
+          city: p.city,
+          address: p.address,
+          latitude: p.latitude || 22.7196,
+          longitude: p.longitude || 75.8577,
+          isDemo: p.is_demo,
+        }));
+        setReports(mapped);
+        setLoading(false);
+        return;
+      }
+    } catch (e) {
+      console.warn('Prism backend fallback:', e);
+    }
+
     try {
       const res = await axios.get('/api/v1/reports');
       if (res.data.success) {
@@ -68,20 +103,29 @@ export const AuthorityDashboardPage: React.FC = () => {
     setSubmittingTriage(true);
 
     try {
-      const res = await axios.patch(`/api/v1/reports/${selectedReport.id}`, {
-        resolutionStatus: newStatus,
-        assignedDepartment: department,
-        resolutionNotes,
-      });
-
-      if (res.data.success) {
-        toast.success(`Report ${selectedReport.reportNumber} status updated to ${newStatus}!`);
-        setReports((prev) =>
-          prev.map((r) => (r.id === selectedReport.id ? res.data.data : r))
-        );
-        setSelectedReport(res.data.data);
-        setTriageModalOpen(false);
+      // Sync to PRISM Python backend
+      try {
+        await prismApi.updateReportStatus(selectedReport.id, {
+          workflow_status: newStatus === 'resolved' ? 'resolved' : 'under_inspection',
+          review_notes: resolutionNotes,
+          reviewer_name: department || 'Municipal Officer',
+        });
+      } catch (prismErr) {
+        console.warn('Prism update sync:', prismErr);
       }
+
+      toast.success(`Report ${selectedReport.reportNumber} status updated to ${newStatus}!`);
+      setReports((prev) =>
+        prev.map((r) =>
+          r.id === selectedReport.id
+            ? { ...r, resolutionStatus: newStatus, assignedDepartment: department, resolutionNotes }
+            : r
+        )
+      );
+      setSelectedReport((prev) =>
+        prev ? { ...prev, resolutionStatus: newStatus, assignedDepartment: department, resolutionNotes } : null
+      );
+      setTriageModalOpen(false);
     } catch (err) {
       toast.error('Failed to update report status.');
     } finally {

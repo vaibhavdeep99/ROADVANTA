@@ -116,6 +116,7 @@ const uploadsPath = path.join(__dirname, '..', config.upload.uploadDir);
 app.use('/uploads', express.static(uploadsPath));
 
 import assistantRoutes from './routes/assistant';
+import supportRoutes from './routes/support';
 
 // 6. API Endpoints
 app.use('/health', healthRoutes);
@@ -125,6 +126,7 @@ app.use('/api/v1/reports', reportsRoutes);
 app.use('/api/v1/detect', detectRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/assistant', assistantRoutes);
+app.use('/api/v1/support', supportRoutes);
 
 // 7. Static files for client build when running as full-stack app
 const clientDistPath = path.join(__dirname, '..', '..', 'client', 'dist');

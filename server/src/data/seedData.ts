@@ -1,6 +1,7 @@
 import { Report } from '../types';
+import simulatedReportsData from './simulatedReports.json';
 
-export const seedReports: Report[] = [
+const baseSeedReports: Report[] = [
   {
     id: 'rp-seed-1',
     reportNumber: 'RP-2026-1042',
@@ -788,4 +789,11 @@ export const seedReports: Report[] = [
     createdAt: '2026-10-15T15:10:00Z',
     updatedAt: '2026-10-15T15:10:00Z',
   }
+];
+
+export const simulatedReports: Report[] = simulatedReportsData as unknown as Report[];
+
+export const seedReports: Report[] = [
+  ...baseSeedReports,
+  ...simulatedReports,
 ];
