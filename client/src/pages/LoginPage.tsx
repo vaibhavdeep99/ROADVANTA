@@ -81,7 +81,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialRegister = false })
           <span className="font-heading font-bold text-xl text-rp-text tracking-tight flex items-center gap-1.5">
             ROADVANTA
           </span>
-          <span className="text-[10px] text-rp-text-muted block">Detect. Predict. Protect.</span>
+          <span className="text-[10px] text-rp-text-muted block">See Risks. Save Roads.</span>
         </div>
       </Link>
 

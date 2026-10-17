@@ -10,7 +10,8 @@ import ResolutionTrackingPage from './pages/ResolutionTrackingPage';
 import LoginPage from './pages/LoginPage';
 import AreaIntelligencePage from './pages/AreaIntelligencePage';
 import ReportHazardPage from './pages/ReportHazardPage';
-import RouteHazardIntelligencePage from './pages/RouteHazardIntelligencePage';
+import RoadSafetyDashboardPage from './pages/RoadSafetyDashboardPage';
+import GeminiRoadAssistant from './components/GeminiRoadAssistant';
 import './index.css';
 
 function App() {
@@ -44,6 +45,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/dashboard" element={<MainDashboardPage />} />
+        <Route path="/statistics" element={<RoadSafetyDashboardPage />} />
+        <Route path="/safety-dashboard" element={<RoadSafetyDashboardPage />} />
         <Route path="/route-intelligence" element={<RouteHazardIntelligencePage />} />
         <Route path="/route" element={<RouteHazardIntelligencePage />} />
         <Route path="/detection" element={<AiDetectionStudioPage />} />
@@ -56,6 +59,8 @@ function App() {
         <Route path="/intelligence" element={<AreaIntelligencePage />} />
         <Route path="/report" element={<ReportHazardPage />} />
       </Routes>
+      {/* Floating Gemini AI Website Assistant across all pages */}
+      <GeminiRoadAssistant />
     </Router>
   );
 }

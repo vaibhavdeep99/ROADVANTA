@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import axios from 'axios';
+import api from '../services/api';
 import * as turf from '@turf/turf';
 import toast from 'react-hot-toast';
 import {
@@ -210,6 +211,37 @@ export const RouteHazardIntelligencePage: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<string>(new Date().toLocaleTimeString());
   const [selectedHazardForDetail, setSelectedHazardForDetail] = useState<Report | null>(null);
 
+  // Autocomplete suggestions
+  const [startSuggestions, setStartSuggestions] = useState<Array<{ display_name: string; lat: string; lon: string }>>([]);
+  const [destSuggestions, setDestSuggestions] = useState<Array<{ display_name: string; lat: string; lon: string }>>([]);
+  const [showStartMenu, setShowStartMenu] = useState(false);
+  const [showDestMenu, setShowDestMenu] = useState(false);
+
+  // Fetch geographic suggestions with debouncing
+  const fetchLocationSuggestions = async (query: string, target: 'start' | 'dest') => {
+    if (!query || query.trim().length < 2) {
+      if (target === 'start') setStartSuggestions([]);
+      else setDestSuggestions([]);
+      return;
+    }
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=in`;
+      const res = await fetch(url, { headers: { 'User-Agent': 'RoadVantaAI-Agent' } });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        if (target === 'start') {
+          setStartSuggestions(data);
+          setShowStartMenu(true);
+        } else {
+          setDestSuggestions(data);
+          setShowDestMenu(true);
+        }
+      }
+    } catch {
+      // Graceful fallback if network is constrained
+    }
+  };
+
   // Filters
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
@@ -218,7 +250,7 @@ export const RouteHazardIntelligencePage: React.FC = () => {
   // Fetch all reports from backend
   const fetchAllReports = async () => {
     try {
-      const res = await axios.get('/api/v1/reports');
+      const res = await api.get('/reports');
       if (res.data.success) {
         setAllReports(res.data.data);
       }
@@ -599,34 +631,88 @@ export const RouteHazardIntelligencePage: React.FC = () => {
         {/* Custom Route Search Bar */}
         <div className="rp-card bg-rp-card-elevated border-rp-border p-4">
           <form onSubmit={handleGeocodeAndSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-            {/* Origin Input */}
+            {/* Origin Input with Autocomplete */}
             <div className="md:col-span-5 relative">
-              <div className="absolute left-3 top-2.5 flex items-center gap-1.5">
+              <div className="absolute left-3 top-2.5 flex items-center gap-1.5 z-10 pointer-events-none">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                 <span className="text-[10px] font-bold text-rp-text-muted uppercase">Start:</span>
               </div>
               <input
                 type="text"
                 value={startInput}
-                onChange={(e) => setStartInput(e.target.value)}
-                placeholder="e.g. Kanpur, Uttar Pradesh"
+                onChange={(e) => {
+                  setStartInput(e.target.value);
+                  fetchLocationSuggestions(e.target.value, 'start');
+                }}
+                onFocus={() => {
+                  if (startSuggestions.length > 0) setShowStartMenu(true);
+                }}
+                placeholder="Search city, highway or road (e.g. Kanpur)"
                 className="w-full pl-20 pr-4 py-2 bg-rp-bg border border-rp-border rounded-xl text-xs text-rp-text focus:outline-none focus:border-rp-accent"
               />
+
+              {/* Autocomplete Suggestions Menu */}
+              {showStartMenu && startSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-rp-card-elevated border border-rp-border rounded-xl shadow-2xl overflow-hidden text-xs max-h-56 overflow-y-auto">
+                  {startSuggestions.map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setStartInput(item.display_name.split(',')[0]);
+                        setStartCoords([parseFloat(item.lon), parseFloat(item.lat)]);
+                        setShowStartMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-rp-accent/15 hover:text-rp-accent flex items-start gap-2 border-b border-rp-border/50 last:border-none transition-colors"
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <span className="line-clamp-1">{item.display_name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Destination Input */}
+            {/* Destination Input with Autocomplete */}
             <div className="md:col-span-5 relative">
-              <div className="absolute left-3 top-2.5 flex items-center gap-1.5">
+              <div className="absolute left-3 top-2.5 flex items-center gap-1.5 z-10 pointer-events-none">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
                 <span className="text-[10px] font-bold text-rp-text-muted uppercase">Dest:</span>
               </div>
               <input
                 type="text"
                 value={destInput}
-                onChange={(e) => setDestInput(e.target.value)}
-                placeholder="e.g. Lucknow, Uttar Pradesh"
+                onChange={(e) => {
+                  setDestInput(e.target.value);
+                  fetchLocationSuggestions(e.target.value, 'dest');
+                }}
+                onFocus={() => {
+                  if (destSuggestions.length > 0) setShowDestMenu(true);
+                }}
+                placeholder="Search destination (e.g. Lucknow)"
                 className="w-full pl-20 pr-4 py-2 bg-rp-bg border border-rp-border rounded-xl text-xs text-rp-text focus:outline-none focus:border-rp-accent"
               />
+
+              {/* Autocomplete Suggestions Menu */}
+              {showDestMenu && destSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-rp-card-elevated border border-rp-border rounded-xl shadow-2xl overflow-hidden text-xs max-h-56 overflow-y-auto">
+                  {destSuggestions.map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setDestInput(item.display_name.split(',')[0]);
+                        setDestCoords([parseFloat(item.lon), parseFloat(item.lat)]);
+                        setShowDestMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-rp-accent/15 hover:text-rp-accent flex items-start gap-2 border-b border-rp-border/50 last:border-none transition-colors"
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                      <span className="line-clamp-1">{item.display_name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Calculate Button */}

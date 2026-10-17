@@ -32,6 +32,8 @@ export type HazardCategory =
   | 'road_obstruction'
   | 'potential_accident'
   | 'citizen_reported_accident'
+  | 'normal_road'
+  | 'unrelated'
   | 'other';
 
 export type VerificationStatus =
@@ -49,7 +51,7 @@ export type ResolutionStatus =
   | 'resolved'
   | 'rejected';
 
-export type SeverityLevel = 'low' | 'medium' | 'high' | 'critical';
+export type SeverityLevel = 'none' | 'low' | 'medium' | 'high' | 'critical';
 
 export interface GeoJSONPoint {
   type: 'Point';

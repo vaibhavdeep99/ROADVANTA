@@ -17,6 +17,7 @@ import {
   LogOut,
   ChevronRight,
   Navigation,
+  BarChart3,
 } from 'lucide-react';
 import { JudgeDemoTour } from './JudgeDemoTour';
 
@@ -38,6 +39,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+    { name: 'Safety Stats', path: '/statistics', icon: <BarChart3 className="w-5 h-5" />, badge: 'MoRTH' },
     { name: 'Route Intelligence', path: '/route-intelligence', icon: <Navigation className="w-5 h-5" />, badge: 'New' },
     { name: 'Live Map', path: '/map', icon: <MapPin className="w-5 h-5" /> },
     { name: 'AI Detection', path: '/detection', icon: <Scan className="w-5 h-5" />, badge: 'Live AI' },

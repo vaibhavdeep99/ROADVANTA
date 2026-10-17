@@ -747,8 +747,8 @@ const LandingPage = () => {
                   <span className="font-heading font-bold text-rp-accent text-lg">AI</span>
                 </div>
               </div>
-              <p className="text-rp-text-secondary text-sm max-w-sm mb-2">
-                Detect. Predict. Protect.
+              <p className="text-rp-text-secondary text-sm max-w-sm mb-2 font-medium text-rp-accent">
+                See Risks. Save Roads.
               </p>
               <p className="text-rp-text-muted text-xs">
                 AI-Powered Road Safety and Smart City Intelligence Platform.

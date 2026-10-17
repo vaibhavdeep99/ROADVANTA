@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import {
   Upload,
@@ -11,111 +10,145 @@ import {
   Sparkles,
   Download,
   PlusCircle,
-  Eye,
+  ShieldCheck,
   Info,
   Maximize2,
-  Layers,
+  FileCheck2,
   ArrowRight,
 } from 'lucide-react';
+import api from '../services/api';
 import { SidebarLayout } from '../components/SidebarLayout';
 
 const SAMPLES = [
   {
     id: 'sample-pothole',
-    name: 'Pothole on Highway',
+    name: 'Highway Pothole',
     url: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=1200&q=80',
     type: 'pothole',
-    defaultBoxes: [
-      { id: 'b1', x: 26, y: 38, width: 34, height: 28, label: 'Pothole 0.93', severity: 'High', color: '#EF4444' },
-      { id: 'b2', x: 62, y: 44, width: 28, height: 24, label: 'Pothole 0.87', severity: 'High', color: '#EF4444' },
-    ],
-    hazards: [
-      { name: 'Pothole', confidence: 93, severity: 'High', color: 'text-rose-400 bg-rose-500/15 border-rose-500/30' },
-      { name: 'Pothole', confidence: 87, severity: 'High', color: 'text-rose-400 bg-rose-500/15 border-rose-500/30' },
-      { name: 'Road Crack', confidence: 76, severity: 'Medium', color: 'text-amber-400 bg-amber-500/15 border-amber-500/30' },
-    ],
-  },
-  {
-    id: 'sample-signal',
-    name: 'Damaged Traffic Signal',
-    url: 'https://images.unsplash.com/photo-1508873696983-2df5293cb32b?auto=format&fit=crop&w=1200&q=80',
-    type: 'damaged_signal',
-    defaultBoxes: [
-      { id: 'b3', x: 38, y: 15, width: 26, height: 60, label: 'Damaged Signal 0.95', severity: 'Critical', color: '#EF4444' },
-    ],
-    hazards: [
-      { name: 'Damaged Traffic Signal', confidence: 95, severity: 'Critical', color: 'text-rose-400 bg-rose-500/15 border-rose-500/30' },
-      { name: 'Road Obstruction', confidence: 82, severity: 'High', color: 'text-amber-400 bg-amber-500/15 border-amber-500/30' },
-    ],
+    desc: 'Deep asphalt cavity crater in travel lane',
   },
   {
     id: 'sample-water',
-    name: 'Waterlogging & Flood',
+    name: 'Roadway Waterlogging',
     url: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=1200&q=80',
     type: 'waterlogging',
-    defaultBoxes: [
-      { id: 'b4', x: 18, y: 40, width: 68, height: 46, label: 'Waterlogging 0.94', severity: 'High', color: '#06B6D4' },
-    ],
-    hazards: [
-      { name: 'Deep Waterlogging', confidence: 94, severity: 'High', color: 'text-cyan-400 bg-cyan-500/15 border-cyan-500/30' },
-      { name: 'Curbside Submersion', confidence: 84, severity: 'Medium', color: 'text-amber-400 bg-amber-500/15 border-amber-500/30' },
-    ],
+    desc: 'Submerged travel corridor & curb flooding',
+  },
+  {
+    id: 'sample-crack',
+    name: 'Asphalt Fatigue Cracks',
+    url: 'https://images.unsplash.com/photo-1590496793929-36417d3117de?auto=format&fit=crop&w=1200&q=80',
+    type: 'road_crack',
+    desc: 'Alligator and transverse pavement stress cracks',
+  },
+  {
+    id: 'sample-normal',
+    name: 'Undamaged Highway',
+    url: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1200&q=80',
+    type: 'normal_road',
+    desc: 'Pristine, smooth asphalt surface with no defects',
   },
 ];
+
+interface AnalysisData {
+  hasHazard: boolean;
+  detectedCategories: string[];
+  suggestedTitle: string;
+  suggestedCategory: string;
+  suggestedSeverity: string;
+  suggestedPriorityScore: number;
+  confidence: number;
+  explanation: string;
+  recommendedAction: string;
+  limitations: string;
+  modelIdentifier: string;
+  timestamp: string;
+  boundingBoxes: Array<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    label: string;
+    confidence: number;
+  }>;
+}
 
 export const AiDetectionStudioPage: React.FC = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeImage, setActiveImage] = useState<string>(SAMPLES[0].url);
-  const [activeBoxes, setActiveBoxes] = useState<any[]>(SAMPLES[0].defaultBoxes);
-  const [detectedHazards, setDetectedHazards] = useState<any[]>(SAMPLES[0].hazards);
+  const [activeBoxes, setActiveBoxes] = useState<any[]>([]);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisData | null>(null);
   const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [scanLaser, setScanLaser] = useState(true);
+  const [isDragOver, setIsDragOver] = useState(false);
 
-  // Run AI Detection (real API or Gemini inference)
-  const triggerAnalysis = async (imageUrl: string, file?: File) => {
+  // Trigger AI Vision Detection via backend /api/v1/detect
+  const triggerAnalysis = async (imageUrlOrBlob: string, file?: File) => {
     setAnalyzing(true);
     setScanLaser(true);
+    setSelectedBoxId(null);
 
     try {
       let res;
       if (file) {
         const formData = new FormData();
         formData.append('image', file);
-        res = await axios.post('/api/v1/detect', formData);
+        res = await api.post('/detect', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
       } else {
-        res = await axios.post('/api/v1/detect', { imageUrl });
+        res = await api.post('/detect', { imageUrl: imageUrlOrBlob });
       }
 
-      if (res.data.success) {
+      if (res.data?.success && res.data.data) {
         const d = res.data.data;
-        const boxes = d.detection?.boundingBoxes?.map((b: any, idx: number) => ({
+        const boxes = (d.detection?.boundingBoxes || d.boundingBoxes || []).map((b: any, idx: number) => ({
           id: `box-${idx}`,
           x: b.x,
           y: b.y,
           width: b.width,
           height: b.height,
-          label: `${b.label || d.suggestedCategory} ${(b.confidence || 0.93).toFixed(2)}`,
-          severity: d.suggestedSeverity || 'High',
-          color: '#EF4444',
-        })) || SAMPLES[0].defaultBoxes;
+          label: `${b.label || d.suggestedCategory} ${(b.confidence ? (b.confidence * 100).toFixed(0) : '90')}%`,
+          severity: d.suggestedSeverity || 'medium',
+          color:
+            d.suggestedSeverity === 'critical'
+              ? '#F43F5E'
+              : d.suggestedSeverity === 'high'
+              ? '#FB7185'
+              : d.suggestedSeverity === 'medium'
+              ? '#F59E0B'
+              : '#06B6D4',
+        }));
 
-        setActiveBoxes(boxes);
+        setActiveBoxes(d.hasHazard ? boxes : []);
+        setAnalysisResult({
+          hasHazard: d.hasHazard ?? (d.suggestedCategory !== 'normal_road' && d.suggestedCategory !== 'unrelated'),
+          detectedCategories: d.detectedCategories || [d.suggestedCategory],
+          suggestedTitle: d.suggestedTitle || (d.hasHazard ? 'Hazard Identified' : 'Undamaged Road Surface'),
+          suggestedCategory: d.suggestedCategory || 'other',
+          suggestedSeverity: d.suggestedSeverity || 'none',
+          suggestedPriorityScore: d.suggestedPriorityScore ?? (d.hasHazard ? 75 : 0),
+          confidence: Math.round((d.confidence || d.detection?.modelConfidence || 0.92) * 100),
+          explanation: d.explanation || d.safetySummary || 'Optical road surface evaluation complete.',
+          recommendedAction: d.recommendedAction || 'Schedule road inspection.',
+          limitations: d.limitations || 'Optical visual analysis only. Does not replace core ultrasound testing.',
+          modelIdentifier: d.modelIdentifier || d.detection?.modelName || 'Gemini 3.8 Flash Vision',
+          timestamp: d.timestamp || new Date().toISOString(),
+          boundingBoxes: boxes,
+        });
 
-        const hazardsList = d.detection?.detectedCategories?.map((cat: string) => ({
-          name: cat.replace('_', ' ').toUpperCase(),
-          confidence: Math.round((d.detection.modelConfidence || 0.93) * 100),
-          severity: d.suggestedSeverity || 'High',
-          color: 'text-rose-400 bg-rose-500/15 border-rose-500/30',
-        })) || SAMPLES[0].hazards;
-
-        setDetectedHazards(hazardsList);
-        toast.success(`AI Detection Complete: Identified ${d.suggestedCategory.toUpperCase()} (${Math.round((d.detection.modelConfidence || 0.93) * 100)}%)`);
+        if (d.hasHazard === false) {
+          toast.success('Clean Road Detected: No visible hazards found!');
+        } else {
+          toast.success(`Hazard Detected: ${d.suggestedCategory.replace('_', ' ').toUpperCase()} (${Math.round((d.confidence || 0.92) * 100)}%)`);
+        }
       }
-    } catch (err) {
-      toast.success('Live AI Neural Scan Complete (Cached Model)');
+    } catch (err: any) {
+      console.warn('Vision detection note:', err.message);
+      toast.error('AI Vision analysis unavailable. Please check image format or retry.');
     } finally {
       setAnalyzing(false);
     }
@@ -123,22 +156,54 @@ export const AiDetectionStudioPage: React.FC = () => {
 
   const handleSelectSample = (sample: typeof SAMPLES[0]) => {
     setActiveImage(sample.url);
-    setActiveBoxes(sample.defaultBoxes);
-    setDetectedHazards(sample.hazards);
     triggerAnalysis(sample.url);
+  };
+
+  const processFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file (JPEG, PNG, WebP).');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size must be under 10MB.');
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setActiveImage(url);
+    triggerAnalysis(url, file);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const url = URL.createObjectURL(file);
-      setActiveImage(url);
-      triggerAnalysis(url, file);
+      processFile(e.target.files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleCreateReport = () => {
-    navigate('/report');
+    navigate('/report', {
+      state: {
+        prefilledCategory: analysisResult?.hasHazard ? analysisResult.suggestedCategory : 'pothole',
+        prefilledTitle: analysisResult?.suggestedTitle,
+        prefilledSeverity: analysisResult?.hasHazard ? analysisResult.suggestedSeverity : 'medium',
+      },
+    });
   };
 
   return (
@@ -148,29 +213,36 @@ export const AiDetectionStudioPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rp-accent/15 border border-rp-accent/30 text-rp-accent text-xs font-semibold mb-2 shadow-glow-cyan">
             <Sparkles className="w-3.5 h-3.5" />
-            Computer Vision Live Tracer
+            Gemini 3.8 Flash Vision Engine
           </div>
           <h1 className="text-2xl sm:text-3xl font-heading font-bold text-rp-text">
             AI Detection Studio
           </h1>
           <p className="text-rp-text-secondary text-xs sm:text-sm mt-1">
-            Upload a road image or video to trace potholes, cracks, waterlogging, and safety hazards using AI.
+            Real-time multimodal computer vision to classify potholes, asphalt cracks, waterlogging, and normal road surfaces.
           </p>
         </div>
 
-        {/* 2-Column Studio Layout matching Screen 3 */}
+        {/* 2-Column Studio Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Column: Upload Box + Sample Images (Cols 1-5) */}
           <div className="lg:col-span-5 space-y-5">
             {/* Drag & Drop Upload Container */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="rp-card border-dashed border-2 border-rp-border hover:border-rp-accent/70 bg-rp-card/50 hover:bg-rp-card transition-all cursor-pointer p-8 text-center rounded-2xl group relative overflow-hidden"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`rp-card border-dashed border-2 transition-all cursor-pointer p-8 text-center rounded-2xl group relative overflow-hidden ${
+                isDragOver
+                  ? 'border-rp-accent bg-rp-accent/10 shadow-glow-cyan scale-[1.01]'
+                  : 'border-rp-border hover:border-rp-accent/70 bg-rp-card/50 hover:bg-rp-card'
+              }`}
             >
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,video/*"
+                accept="image/jpeg,image/png,image/webp"
                 onChange={handleFileChange}
                 className="hidden"
               />
@@ -180,61 +252,74 @@ export const AiDetectionStudioPage: React.FC = () => {
               </div>
 
               <h4 className="font-heading font-bold text-sm text-rp-text">
-                Drag & drop an image or video here
+                {isDragOver ? 'Drop road photo now...' : 'Drag & drop a road photo here'}
               </h4>
-              <p className="text-xs text-rp-accent hover:underline mt-1">
-                or Click to browse
+              <p className="text-xs text-rp-accent hover:underline mt-1 font-medium">
+                or Click to browse file
               </p>
 
               <div className="mt-4 pt-3 border-t border-rp-border/50 text-[10px] text-rp-text-muted">
-                Supports: JPG, PNG, MP4 (Max 50MB)
+                Supports: JPG, PNG, WEBP (Max 10MB) • Official Vision Model
               </div>
             </div>
 
             {/* Analyze Road Primary Button */}
-            <button
-              onClick={() => triggerAnalysis(activeImage)}
-              disabled={analyzing}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-rp-accent to-cyan-500 text-rp-bg font-heading font-bold text-sm tracking-wide shadow-glow-cyan hover:shadow-glow-cyan-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
-            >
-              {analyzing ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Running Neural Vision Scan...
-                </>
-              ) : (
-                <>
-                  <Scan className="w-4 h-4" />
-                  Analyze Road
-                </>
-              )}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => triggerAnalysis(activeImage)}
+                disabled={analyzing}
+                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-rp-accent to-cyan-500 text-rp-bg font-heading font-bold text-sm tracking-wide shadow-glow-cyan hover:shadow-glow-cyan-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+              >
+                {analyzing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Analyzing with Gemini Vision...
+                  </>
+                ) : (
+                  <>
+                    <Scan className="w-4 h-4" />
+                    Re-Analyze Active Image
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-3.5 rounded-xl bg-rp-card border border-rp-border hover:border-rp-accent/40 text-xs font-semibold text-rp-text hover:bg-rp-card-elevated transition-colors"
+                title="Upload Another Image"
+              >
+                Try Another
+              </button>
+            </div>
 
             {/* Sample Images Gallery */}
             <div className="rp-card bg-rp-card-elevated">
               <span className="text-[11px] font-bold uppercase tracking-wider text-rp-text-muted block mb-3">
-                Sample Road Images (Click to Test)
+                Pre-Tested Benchmark Images (Click to Scan)
               </span>
 
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-2 gap-2.5">
                 {SAMPLES.map((sample) => (
                   <button
                     key={sample.id}
                     onClick={() => handleSelectSample(sample)}
-                    className={`relative rounded-xl overflow-hidden border-2 transition-all aspect-video group ${
+                    className={`relative rounded-xl overflow-hidden border-2 text-left transition-all aspect-video group ${
                       activeImage === sample.url
-                        ? 'border-rp-accent shadow-glow-cyan scale-105'
-                        : 'border-rp-border hover:border-rp-accent/50 opacity-80 hover:opacity-100'
+                        ? 'border-rp-accent shadow-glow-cyan scale-[1.02]'
+                        : 'border-rp-border hover:border-rp-accent/50 opacity-85 hover:opacity-100'
                     }`}
                   >
                     <img
                       src={sample.url}
                       alt={sample.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1.5">
-                      <span className="text-[9px] font-semibold text-white truncate">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-2">
+                      <span className="text-[10px] font-bold text-white truncate">
                         {sample.name}
+                      </span>
+                      <span className="text-[8px] text-rp-text-muted truncate">
+                        {sample.type === 'normal_road' ? '🟢 Normal Road' : '⚠️ Hazard Scene'}
                       </span>
                     </div>
                   </button>
@@ -250,17 +335,31 @@ export const AiDetectionStudioPage: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-heading font-bold text-rp-text">
-                    Detection Results
+                    Visual Inference Trace
                   </span>
                   <span className="text-[10px] text-rp-text-muted">
-                    ({activeBoxes.length} hazards traced)
+                    {analyzing
+                      ? '(Tracing features...)'
+                      : analysisResult?.hasHazard === false
+                      ? '(0 hazards detected — Surface clean)'
+                      : `(${activeBoxes.length} hazard zone${activeBoxes.length === 1 ? '' : 's'} localized)`}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                    <CheckCircle2 className="w-3 h-3" /> Analysis Complete
-                  </span>
+                  {analyzing ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rp-accent/15 border border-rp-accent/30 text-rp-accent text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                      <RefreshCw className="w-3 h-3 animate-spin" /> Neural Sweep Active
+                    </span>
+                  ) : analysisResult?.hasHazard === false ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                      <ShieldCheck className="w-3 h-3" /> Undamaged Road
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-400 text-[10px] font-bold uppercase tracking-wider">
+                      <CheckCircle2 className="w-3 h-3" /> Hazard Confirmed
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -274,10 +373,7 @@ export const AiDetectionStudioPage: React.FC = () => {
 
                 {/* Laser scan line animation */}
                 {scanLaser && (
-                  <div
-                    className="absolute inset-0 pointer-events-none overflow-hidden"
-                    style={{ animationDuration: '3s' }}
-                  >
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
                     <div className="w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-glow-cyan animate-scan-line" />
                   </div>
                 )}
@@ -307,7 +403,7 @@ export const AiDetectionStudioPage: React.FC = () => {
                         {box.label}
                       </div>
 
-                      {/* High-tech corner crosshairs */}
+                      {/* Corner crosshairs */}
                       <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-white" />
                       <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-white" />
                       <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-white" />
@@ -318,76 +414,105 @@ export const AiDetectionStudioPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Detected Hazards List */}
-            <div className="rp-card bg-rp-card-elevated">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-rp-text-muted block mb-3">
-                Detected Hazards Breakdown
-              </span>
-
-              <div className="space-y-2.5">
-                {detectedHazards.map((hazard, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 rounded-xl bg-rp-card border border-rp-border hover:border-rp-accent/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-rp-accent/10 border border-rp-accent/20 flex items-center justify-center text-rp-accent">
-                        <AlertTriangle className="w-4 h-4 text-rose-400" />
+            {/* Analysis Results Card */}
+            {analysisResult && (
+              <div className="rp-card bg-rp-card-elevated space-y-4">
+                {/* Result Status Banner */}
+                {analysisResult.hasHazard === false ? (
+                  <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3">
+                    <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-heading font-bold text-sm text-emerald-300">
+                        No Visible Road Hazards Detected
+                      </h4>
+                      <p className="text-xs text-rp-text-secondary mt-1">
+                        {analysisResult.explanation}
+                      </p>
+                      <div className="mt-2 text-[11px] text-emerald-400 font-medium">
+                        ✓ Recommendation: {analysisResult.recommendedAction}
                       </div>
-                      <div>
-                        <span className="font-heading font-bold text-xs text-rp-text block">
-                          {hazard.name}
-                        </span>
-                        <span className="text-[11px] text-rp-text-muted">
-                          Confidence: <strong className="text-rp-accent">{hazard.confidence}%</strong>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {/* Confidence Meter Bar */}
-                      <div className="w-20 sm:w-28 h-2 bg-rp-bg rounded-full overflow-hidden border border-rp-border hidden sm:block">
-                        <div
-                          className="h-full bg-gradient-to-r from-rp-accent to-cyan-400 rounded-full"
-                          style={{ width: `${hazard.confidence}%` }}
-                        />
-                      </div>
-
-                      <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-md border ${hazard.color}`}>
-                        {hazard.severity}
-                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-rp-text-muted block">
+                        Hazard Engineering Assessment
+                      </span>
+                      <span className="text-xs font-mono text-rp-accent font-bold">
+                        Priority Score: {analysisResult.suggestedPriorityScore}/100
+                      </span>
+                    </div>
 
-              {/* Action Buttons: Create Road Report & Download */}
-              <div className="flex flex-col sm:flex-row gap-3 mt-5 pt-4 border-t border-rp-border">
-                <button
-                  onClick={handleCreateReport}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-rp-accent to-cyan-400 text-rp-bg font-heading font-bold text-xs tracking-wider uppercase shadow-glow-cyan hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  Create Road Report
-                </button>
+                    <div className="p-3.5 rounded-xl bg-rp-card border border-rp-border">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-heading font-bold text-sm text-rp-text">
+                          {analysisResult.suggestedTitle}
+                        </h4>
+                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                          analysisResult.suggestedSeverity === 'critical'
+                            ? 'text-rose-400 bg-rose-500/15 border-rose-500/30'
+                            : analysisResult.suggestedSeverity === 'high'
+                            ? 'text-rose-400 bg-rose-500/15 border-rose-500/30'
+                            : 'text-amber-400 bg-amber-500/15 border-amber-500/30'
+                        }`}>
+                          {analysisResult.suggestedSeverity} Severity
+                        </span>
+                      </div>
 
-                <button
-                  onClick={() => {
-                    const blob = new Blob([JSON.stringify({ activeImage, activeBoxes, detectedHazards }, null, 2)], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `hazard-scan-${Date.now()}.json`;
-                    a.click();
-                    toast.success('Inspection report downloaded!');
-                  }}
-                  className="px-5 py-3 rounded-xl bg-rp-card border border-rp-border hover:border-rp-accent/40 text-xs font-semibold text-rp-text hover:bg-rp-card-elevated transition-colors flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Download Report
-                </button>
+                      <p className="text-xs text-rp-text-secondary leading-relaxed mb-3">
+                        {analysisResult.explanation}
+                      </p>
+
+                      <div className="p-2.5 rounded-lg bg-rp-bg-secondary border border-rp-border/60 text-[11px] space-y-1">
+                        <div className="text-rp-accent font-medium">
+                          🛠️ Recommended Action: <span className="text-rp-text">{analysisResult.recommendedAction}</span>
+                        </div>
+                        <div className="text-rp-text-muted text-[10px]">
+                          ⚠️ Disclaimer: {analysisResult.limitations}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Model Details Bar */}
+                <div className="flex items-center justify-between text-[10px] text-rp-text-muted pt-2 border-t border-rp-border">
+                  <span>Engine: <strong className="text-rp-text">{analysisResult.modelIdentifier}</strong></span>
+                  <span>Confidence: <strong className="text-rp-accent">{analysisResult.confidence}%</strong></span>
+                  <span>Evaluated: {new Date(analysisResult.timestamp).toLocaleTimeString()}</span>
+                </div>
+
+                {/* Action Buttons: Create Road Report & Download */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button
+                    onClick={handleCreateReport}
+                    className="flex-1 py-3 rounded-xl bg-gradient-to-r from-rp-accent to-cyan-400 text-rp-bg font-heading font-bold text-xs tracking-wider uppercase shadow-glow-cyan hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    File Official Road Report
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const blob = new Blob([JSON.stringify({ activeImage, analysisResult }, null, 2)], {
+                        type: 'application/json',
+                      });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `roadvanta-analysis-${Date.now()}.json`;
+                      a.click();
+                      toast.success('Hazard assessment report exported!');
+                    }}
+                    className="px-5 py-3 rounded-xl bg-rp-card border border-rp-border hover:border-rp-accent/40 text-xs font-semibold text-rp-text hover:bg-rp-card-elevated transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export Assessment
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ const startServer = async () => {
       console.log('');
       console.log('🚀 ═══════════════════════════════════════════');
       console.log('   ROADVANTA AI — Server');
-      console.log('   Detect. Predict. Protect.');
+      console.log('   See Risks. Save Roads.');
       console.log('═══════════════════════════════════════════════');
       console.log(`   🌐 Environment : ${config.nodeEnv}`);
       console.log(`   🔗 Server      : http://localhost:${config.port}`);

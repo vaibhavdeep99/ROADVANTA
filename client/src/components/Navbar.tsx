@@ -33,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRole = 'citizen', onRoleC
 
   const navLinks = [
     { name: 'Home', path: '/' },
+    { name: 'Safety Stats', path: '/statistics', icon: <BarChart3 className="w-4 h-4" /> },
     { name: 'Route Intelligence', path: '/route-intelligence', icon: <Navigation className="w-4 h-4" /> },
     { name: 'Live Hazard Map', path: '/map', icon: <MapPin className="w-4 h-4" /> },
     { name: 'AI Studio', path: '/detection', icon: <AlertTriangle className="w-4 h-4" /> },
@@ -68,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRole = 'citizen', onRoleC
                 ROADVANTA
               </span>
               <p className="text-[10px] text-rp-text-muted leading-none hidden sm:block">
-                Detect. Predict. Protect.
+                See Risks. Save Roads.
               </p>
             </div>
           </Link>

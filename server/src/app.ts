@@ -99,12 +99,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const uploadsPath = path.join(__dirname, '..', config.upload.uploadDir);
 app.use('/uploads', express.static(uploadsPath));
 
+import assistantRoutes from './routes/assistant';
+
 // 6. API Endpoints
 app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/reports', reportsRoutes);
 app.use('/api/v1/detect', detectRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/assistant', assistantRoutes);
 
 // 7. Static files for client build when running as full-stack app
 const clientDistPath = path.join(__dirname, '..', '..', 'client', 'dist');
