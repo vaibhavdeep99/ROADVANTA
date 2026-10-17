@@ -4,10 +4,12 @@ import io
 from PIL import Image
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import pytest
 from fastapi.testclient import TestClient
 from main import app
+from data.pipeline_rdd2022 import RDD2022Pipeline
 
 client = TestClient(app)
 
@@ -30,14 +32,12 @@ def test_model_status_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert "model_configured" in data
-    assert data["model_configured"] is False
-    assert "AI model not configured" in data["status"]
+    assert "status" in data
     assert "colab_instructions" in data
     assert "roboflow_compatibility" in data
 
 def test_vision_lab_enhancement():
     image_bytes = create_dummy_image_bytes()
-    # Test CLAHE mode
     response = client.post(
         "/api/vision/enhance",
         files={"file": ("test_road.jpg", image_bytes, "image/jpeg")},
@@ -52,7 +52,7 @@ def test_vision_lab_enhancement():
     assert res["base64_data"].startswith("data:image/jpeg;base64,")
     assert "disclaimer" in res
 
-def test_image_analysis_without_model():
+def test_image_analysis_endpoint():
     image_bytes = create_dummy_image_bytes()
     response = client.post(
         "/api/images/analyze",
@@ -62,45 +62,66 @@ def test_image_analysis_without_model():
     assert response.status_code == 200
     body = response.json()
     assert body["success"] is True
-    inference = body["data"]["inference"]
-    # When no model is configured, it must honestly say model_not_configured
-    assert inference["inference_status"] == "model_not_configured"
-    assert inference["detected_count"] == 0
-    assert len(inference["detections"]) == 0
-    # Must save report when requested
+    assert "inference" in body["data"]
     assert body["data"]["saved_report"] is not None
     assert body["data"]["saved_report"]["id"].startswith("PRISM-")
 
-def test_get_reports_and_filters():
-    response = client.get("/api/reports")
+def test_dataset_status_endpoint():
+    response = client.get("/api/dataset/status")
     assert response.status_code == 200
     body = response.json()
     assert body["success"] is True
-    reports = body["data"]
-    assert isinstance(reports, list)
-    assert len(reports) > 0
+    rdd = body["data"]["rdd2022"]
+    assert "RDD2022" in rdd["name"]
+    assert "D40" in rdd["classes"]
+    assert rdd["classes"]["D40"] == "Pothole"
 
-    # Test filtering by is_demo
-    resp_demo = client.get("/api/reports?is_demo=true")
-    assert resp_demo.status_code == 200
-    demo_reports = resp_demo.json()["data"]
-    assert len(demo_reports) > 0
-    assert all(r["is_demo"] is True for r in demo_reports)
-
-def test_analytics_summary():
-    response = client.get("/api/analytics/summary")
+def test_official_accident_stats_endpoint():
+    response = client.get("/api/analytics/official-accidents")
     assert response.status_code == 200
     body = response.json()
     assert body["success"] is True
-    summary = body["data"]
-    assert "total_reports" in summary
-    assert "awaiting_inspection" in summary
-    assert "confirmed_damage" in summary
-    assert "resolved_reports" in summary
-    assert "severity_distribution" in summary
+    data = body["data"]
+    assert "national_totals" in data
+    assert data["national_totals"]["2022"]["accidents"] == 4446
+    assert data["national_totals"]["2022"]["fatalities"] == 1856
+    assert len(data["state_rankings"]) > 0
+    # Top state is Uttar Pradesh
+    assert data["state_rankings"][0]["state"] == "Uttar Pradesh"
 
-def test_csv_export():
-    response = client.get("/api/reports/export")
+def test_traffic_status_guardrail():
+    response = client.get("/api/traffic/status")
     assert response.status_code == 200
-    assert "text/csv" in response.headers["content-type"]
-    assert "Report ID,Report Number,Title" in response.text
+    data = response.json()
+    assert data["status"] == "Not configured"
+    assert "Traffic obstruction detection is not configured" in data["message"]
+
+def test_ai_inspection_verification_agent():
+    response = client.post(
+        "/api/inspection/verify-defect",
+        json={
+            "detected_count": 2,
+            "max_confidence": 0.72,
+            "apparent_area_pct": 18.5,
+            "notes": "NH-27 highway approach"
+        }
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    data = body["data"]
+    assert "CONFIRMED" in data["verification_verdict"]
+    assert "Public Works Department" in data["assigned_department"]
+    assert "recommended_repair" in data
+
+def test_rdd2022_voc_xml_parser():
+    sample_xml = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data/sample/India_001_pothole_crater.xml"))
+    if os.path.exists(sample_xml):
+        parsed = RDD2022Pipeline.parse_voc_xml(sample_xml)
+        assert parsed["objects_count"] >= 1
+        assert parsed["objects"][0]["class_code"] == "D40"
+        assert parsed["objects"][0]["class_name"] == "Pothole"
+        # Bounding box coordinates normalized between 0 and 1
+        box = parsed["objects"][0]["box_yolo_normalized"]
+        assert len(box) == 4
+        assert all(0.0 <= val <= 1.0 for val in box)

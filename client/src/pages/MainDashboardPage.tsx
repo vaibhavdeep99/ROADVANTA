@@ -38,7 +38,7 @@ const makeDotIcon = (color: string) => {
   });
 };
 
-import prismApi, { AnalyticsSummary, PrismReport } from '../services/prismApi';
+import prismApi, { AnalyticsSummary, PrismReport, getAssetUrl } from '../services/prismApi';
 
 export const MainDashboardPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
@@ -69,9 +69,7 @@ export const MainDashboardPage: React.FC = () => {
             upvotesCount: p.detections_count || 1,
             reportedBy: p.is_demo ? 'Field Patrol AI' : 'Citizen Inspector',
             createdAt: p.created_at || new Date().toISOString(),
-            originalImageUrl: p.original_image_url?.startsWith('/uploads')
-              ? `http://127.0.0.1:8000${p.original_image_url}`
-              : p.original_image_url || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80',
+            originalImageUrl: getAssetUrl(p.original_image_url),
             city: p.city,
             address: p.address,
             latitude: p.latitude || 22.7196,

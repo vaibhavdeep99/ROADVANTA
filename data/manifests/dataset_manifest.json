@@ -1,0 +1,30 @@
+{
+  "dataset": "RDD2022-India",
+  "version": "1.0",
+  "license": "CC BY-SA 4.0",
+  "samples": [
+    {
+      "filename": "India_001_pothole_crater.jpg",
+      "xml_annotation": "India_001_pothole_crater.xml",
+      "damage_classes": [
+        "D40 (Pothole)"
+      ],
+      "objects_detected": 1,
+      "split": "train",
+      "image_url": "/samples/sample_pothole_nh27.jpg",
+      "title": "Severe Pothole Cavitation (NH-27 Corridor)",
+      "description": "Real-world deep crater on asphalt surface with high vehicle wheel disruption risk."
+    },
+    {
+      "filename": "India_002_clear_surface.jpg",
+      "damage_classes": [
+        "None (Clear Road)"
+      ],
+      "objects_detected": 0,
+      "split": "val",
+      "image_url": "/samples/sample_clear_road.jpg",
+      "title": "Undamaged Arterial Road Pavement",
+      "description": "Normal asphalt without cavitations (verifies zero false-positive precision)."
+    }
+  ]
+}

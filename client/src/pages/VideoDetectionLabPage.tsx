@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { SidebarLayout } from '../components/SidebarLayout';
-import prismApi, { VideoAnalysisResponse, VideoSampledFrame } from '../services/prismApi';
+import prismApi, { getAssetUrl, VideoAnalysisResponse, VideoSampledFrame } from '../services/prismApi';
 
 export const VideoDetectionLabPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,12 +58,38 @@ export const VideoDetectionLabPage: React.FC = () => {
     try {
       const data = await prismApi.analyzeVideo(selectedFile, samplingInterval, maxDuration);
       setResults(data);
-      if (data.sampled_frames && data.sampled_frames.length > 0) {
-        setSelectedFrame(data.sampled_frames[0]);
+      const frames = data.sampled_frames || (data as any).frames || [];
+      if (frames.length > 0) {
+        setSelectedFrame(frames[0]);
       }
-      toast.success(`Video processed: ${data.total_frames_sampled} frames extracted!`, { id: 'vid-proc' });
+      toast.success(`Video processed: ${frames.length} frames extracted!`, { id: 'vid-proc' });
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Video processing failed.', { id: 'vid-proc' });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleLoadSampleVideo = async () => {
+    setIsProcessing(true);
+    toast.loading('Loading sample patrol footage...', { id: 'sample-vid' });
+    try {
+      const response = await fetch('/samples/sample_dashcam_patrol.mp4');
+      const blob = await response.blob();
+      const file = new File([blob], 'sample_dashcam_patrol.mp4', { type: 'video/mp4' });
+      setSelectedFile(file);
+      setVideoUrl(URL.createObjectURL(blob));
+      toast.loading('Running OpenCV & YOLOv8 on sample footage...', { id: 'sample-vid' });
+
+      const data = await prismApi.analyzeVideo(file, samplingInterval, maxDuration);
+      setResults(data);
+      const frames = data.sampled_frames || (data as any).frames || [];
+      if (frames.length > 0) {
+        setSelectedFrame(frames[0]);
+      }
+      toast.success(`Analysis ready: ${frames.length} keyframes extracted with YOLO detections!`, { id: 'sample-vid' });
+    } catch (err: any) {
+      toast.error('Could not load sample video: ' + (err.message || 'Error'), { id: 'sample-vid' });
     } finally {
       setIsProcessing(false);
     }
@@ -143,9 +169,26 @@ export const VideoDetectionLabPage: React.FC = () => {
                     <p className="text-xs text-rp-text-muted mt-1 max-w-xs">
                       Supports MP4 and MOV formats (up to 50 MB, max 30s recommended for instant processing).
                     </p>
-                    <button className="mt-3 px-4 py-2 rounded-xl bg-rp-accent text-rp-bg font-semibold text-xs hover:bg-cyan-400 transition-all">
-                      Browse Video
-                    </button>
+                    <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                        className="px-4 py-2 rounded-xl bg-rp-accent text-rp-bg font-semibold text-xs hover:bg-cyan-400 transition-all shadow-sm"
+                      >
+                        Browse Video
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLoadSampleVideo();
+                        }}
+                        className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        ⚡ Try Sample Dashcam Video (NH-27)
+                      </button>
+                    </div>
                   </div>
                 )}
                 <input
@@ -184,12 +227,12 @@ export const VideoDetectionLabPage: React.FC = () => {
                     >
                       <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
                         <img
-                          src={`http://127.0.0.1:8000${frame.frame_url}`}
-                          alt={`Frame ${frame.timestamp_formatted}`}
+                          src={getAssetUrl(frame.frame_url || (frame as any).frame_image_url)}
+                          alt={`Frame ${frame.timestamp_formatted || (frame as any).formatted_timestamp}`}
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono text-rp-text">
-                          {frame.timestamp_formatted}
+                          {frame.timestamp_formatted || (frame as any).formatted_timestamp}
                         </div>
                       </div>
                       <div className="mt-1 flex items-center justify-between text-[10px]">
@@ -217,7 +260,7 @@ export const VideoDetectionLabPage: React.FC = () => {
 
                     <div className="aspect-video w-full rounded-lg overflow-hidden bg-black flex items-center justify-center">
                       <img
-                        src={`http://127.0.0.1:8000${selectedFrame.frame_url}`}
+                        src={getAssetUrl(selectedFrame.frame_url || (selectedFrame as any).frame_image_url)}
                         alt="Inspected Frame"
                         className="max-h-full max-w-full object-contain"
                       />

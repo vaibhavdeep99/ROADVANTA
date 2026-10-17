@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Report, ResolutionStatus, SeverityLevel } from '../types';
-import prismApi from '../services/prismApi';
+import prismApi, { getAssetUrl } from '../services/prismApi';
 
 export const AuthorityDashboardPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
@@ -56,9 +56,7 @@ export const AuthorityDashboardPage: React.FC = () => {
           createdAt: p.created_at || new Date().toISOString(),
           assignedDepartment: 'Public Works Department (PWD)',
           resolutionNotes: p.reviews && p.reviews.length > 0 ? p.reviews[p.reviews.length - 1].notes : '',
-          originalImageUrl: p.original_image_url?.startsWith('/uploads')
-            ? `http://127.0.0.1:8000${p.original_image_url}`
-            : p.original_image_url || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80',
+          originalImageUrl: getAssetUrl(p.original_image_url),
           city: p.city,
           address: p.address,
           latitude: p.latitude || 22.7196,

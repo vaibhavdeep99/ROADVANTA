@@ -48,6 +48,10 @@ Thumbs.db
 # Brain & system generated logs
 .system_generated/
 .gemini/
+*.onnx
+*.db
+prism_backend/prism_road.db
+
 
 # Python & SQLite
 __pycache__/

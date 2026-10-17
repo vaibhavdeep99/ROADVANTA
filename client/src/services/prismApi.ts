@@ -249,6 +249,61 @@ export const prismApi = {
   getExportCsvUrl(): string {
     return `${PRISM_API_BASE}/api/reports/export`;
   },
+
+  // 7. Dataset Pipeline & Official Accident Analytics
+  async getDatasetStatus() {
+    const res = await client.get('/api/dataset/status');
+    return res.data.data;
+  },
+
+  async getOfficialAccidentStats() {
+    const res = await client.get('/api/analytics/official-accidents');
+    return res.data.data;
+  },
+
+  async getTrafficStatus() {
+    const res = await client.get('/api/traffic/status');
+    return res.data;
+  },
+
+  // 8. AI Structural Engineer Verification Agent
+  async verifyDefectWithAi(payload: {
+    report_id?: string;
+    detected_count?: number;
+    max_confidence?: number;
+    apparent_area_pct?: number;
+    notes?: string;
+  }) {
+    const res = await client.post('/api/inspection/verify-defect', payload);
+    return res.data.data;
+  },
+
+  async createReport(payload: {
+    title: string;
+    description?: string;
+    category?: string;
+    estimated_severity?: string;
+    priority_score?: number;
+    city?: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    original_image_url?: string;
+  }) {
+    const res = await client.post('/api/reports', payload);
+    return res.data.data;
+  },
+};
+
+export const getAssetUrl = (path?: string | null): string => {
+  if (!path) {
+    return 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80';
+  }
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+    return path;
+  }
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  return `${PRISM_API_BASE}${clean}`;
 };
 
 export default prismApi;

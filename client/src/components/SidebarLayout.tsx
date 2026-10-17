@@ -21,6 +21,7 @@ import {
   Sparkles,
   Video,
   Settings,
+  Database,
 } from 'lucide-react';
 import { JudgeDemoTour } from './JudgeDemoTour';
 
@@ -48,6 +49,7 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
     { name: 'Reports Registry', path: '/reports', icon: <FileText className="w-5 h-5" /> },
     { name: 'Maintenance Priorities', path: '/authority', icon: <ShieldAlert className="w-5 h-5" />, badge: 'Priorities' },
     { name: 'Road Analytics', path: '/statistics', icon: <BarChart3 className="w-5 h-5" /> },
+    { name: 'Datasets & Stats', path: '/datasets', icon: <Database className="w-5 h-5" />, badge: 'MoRTH' },
     { name: 'Model & Settings', path: '/settings', icon: <Settings className="w-5 h-5" />, badge: 'YOLO' },
   ];
 

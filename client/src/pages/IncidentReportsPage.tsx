@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { SidebarLayout } from '../components/SidebarLayout';
 import { Report } from '../types';
-import prismApi from '../services/prismApi';
+import prismApi, { getAssetUrl } from '../services/prismApi';
 
 export const IncidentReportsPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
@@ -44,9 +44,7 @@ export const IncidentReportsPage: React.FC = () => {
             address: p.address,
             latitude: p.latitude || 22.7196,
             longitude: p.longitude || 75.8577,
-            originalImageUrl: p.original_image_url?.startsWith('/uploads')
-              ? `http://127.0.0.1:8000${p.original_image_url}`
-              : p.original_image_url || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80',
+            originalImageUrl: getAssetUrl(p.original_image_url),
             upvotesCount: p.detections_count || 1,
             reportedBy: p.is_demo ? 'Simulated Inspection' : 'Verified Citizen',
             createdAt: p.created_at || new Date().toISOString(),
@@ -139,7 +137,7 @@ export const IncidentReportsPage: React.FC = () => {
               />
             </div>
             <a
-              href="http://127.0.0.1:8000/api/reports/export"
+              href={prismApi.getExportCsvUrl()}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-1.5 rounded-lg bg-rp-bg-secondary border border-rp-border text-rp-text hover:text-rp-accent text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"

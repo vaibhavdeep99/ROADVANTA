@@ -14,7 +14,16 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { SidebarLayout } from '../components/SidebarLayout';
-import prismApi, { PrismReport } from '../services/prismApi';
+import prismApi, { getAssetUrl, PrismReport } from '../services/prismApi';
+
+const PRESET_CORRIDORS = [
+  { name: 'All India View', city: 'all', lat: 23.5937, lng: 78.9629, bbox: '68.0%2C8.0%2C97.0%2C37.0' },
+  { name: 'Unnao (NH-27 Leather Belt, UP)', city: 'unnao', lat: 26.5380, lng: 80.4820, bbox: '80.35%2C26.45%2C80.60%2C26.65' },
+  { name: 'Lucknow (Shaheed Path, UP)', city: 'lucknow', lat: 26.8467, lng: 80.9462, bbox: '80.85%2C26.75%2C81.05%2C26.95' },
+  { name: 'Varanasi (GT Road, UP)', city: 'varanasi', lat: 25.3176, lng: 82.9739, bbox: '82.85%2C25.25%2C83.08%2C25.40' },
+  { name: 'Indore (BRTS Corridor, MP)', city: 'indore', lat: 22.7196, lng: 75.8577, bbox: '75.75%2C22.65%2C75.95%2C22.80' },
+  { name: 'Kanpur (GT Road Bypass, UP)', city: 'kanpur', lat: 26.4499, lng: 80.3319, bbox: '80.20%2C26.35%2C80.45%2C26.55' },
+];
 
 export const MapPage: React.FC = () => {
   const [reports, setReports] = useState<PrismReport[]>([]);
@@ -62,15 +71,16 @@ export const MapPage: React.FC = () => {
       list = list.filter((r) => r.workflow_status === selectedStatus);
     }
     if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        (r) =>
-          r.title.toLowerCase().includes(q) ||
-          r.address.toLowerCase().includes(q) ||
-          r.id.toLowerCase().includes(q)
-      );
+      const tokens = search.toLowerCase().split(/[\s,]+/).filter((t) => t.length > 1);
+      list = list.filter((r) => {
+        const text = `${r.title} ${r.address} ${r.city} ${r.id} ${r.category}`.toLowerCase();
+        return tokens.some((tok) => text.includes(tok));
+      });
     }
     setFilteredReports(list);
+    if (list.length > 0 && (!selectedReport || !list.some((r) => r.id === selectedReport.id))) {
+      setSelectedReport(list[0]);
+    }
   }, [selectedCity, selectedSeverity, selectedStatus, search, reports]);
 
   // Request browser geolocation with consent
@@ -211,7 +221,9 @@ export const MapPage: React.FC = () => {
             <div className="relative flex-1 bg-rp-bg-secondary">
               <iframe
                 title="OpenStreetMap Live View"
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=73.0%2C12.0%2C84.0%2C28.0&layer=mapnik&marker=${
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+                  selectedReport?.longitude ? `${(selectedReport.longitude - 0.08).toFixed(4)}%2C${(selectedReport.latitude! - 0.06).toFixed(4)}%2C${(selectedReport.longitude + 0.08).toFixed(4)}%2C${(selectedReport.latitude! + 0.06).toFixed(4)}` : '73.0%2C12.0%2C84.0%2C28.0'
+                }&layer=mapnik&marker=${
                   selectedReport?.latitude || 22.7196
                 }%2C${selectedReport?.longitude || 75.8577}`}
                 className="w-full h-full min-h-[500px] border-none grayscale-[0.2] contrast-[1.1]"
@@ -271,12 +283,7 @@ export const MapPage: React.FC = () => {
                 {/* Thumbnail */}
                 <div className="aspect-video w-full rounded-xl overflow-hidden bg-rp-bg-secondary border border-rp-border">
                   <img
-                    src={
-                      selectedReport.original_image_url?.startsWith('/uploads')
-                        ? `http://127.0.0.1:8000${selectedReport.original_image_url}`
-                        : selectedReport.original_image_url ||
-                          'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80'
-                    }
+                    src={getAssetUrl(selectedReport.original_image_url)}
                     alt={selectedReport.title}
                     className="w-full h-full object-cover"
                   />

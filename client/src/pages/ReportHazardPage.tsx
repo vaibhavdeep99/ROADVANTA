@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { HazardCategory, SeverityLevel } from '../types';
+import prismApi from '../services/prismApi';
 
 // Pin icon for location picker
 const locationPickerIcon = L.divIcon({
@@ -216,7 +217,24 @@ export const ReportHazardPage: React.FC = () => {
 
       if (res.data.success) {
         setSubmittedReport(res.data.data);
-        toast.success(`Report ${res.data.data.reportNumber} registered!`);
+        toast.success(`Report ${res.data.data.reportNumber} registered and routed to Authority Portal!`);
+        
+        // Sync to PRISM SQLite backend for Authority & Vision registry
+        try {
+          await prismApi.createReport({
+            title,
+            description,
+            category,
+            city: nearestCity,
+            address: addressText,
+            latitude: coords[0],
+            longitude: coords[1],
+            estimated_severity: estimatedSeverity,
+            priority_score: priorityScore,
+          });
+        } catch (syncErr) {
+          console.warn('Prism backend sync skipped:', syncErr);
+        }
       }
     } catch (err: any) {
       toast.error(err.response?.data?.error?.message || 'Failed to submit report.');

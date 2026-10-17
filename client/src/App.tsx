@@ -15,6 +15,7 @@ import RoadSafetyDashboardPage from './pages/RoadSafetyDashboardPage';
 import RoadVisionLabPage from './pages/RoadVisionLabPage';
 import VideoDetectionLabPage from './pages/VideoDetectionLabPage';
 import SettingsModelPage from './pages/SettingsModelPage';
+import DatasetSourcesPage from './pages/DatasetSourcesPage';
 import GeminiRoadAssistant from './components/GeminiRoadAssistant';
 import './index.css';
 
@@ -56,6 +57,7 @@ function App() {
         <Route path="/detection" element={<AiDetectionStudioPage />} />
         <Route path="/vision-lab" element={<RoadVisionLabPage />} />
         <Route path="/video-lab" element={<VideoDetectionLabPage />} />
+        <Route path="/datasets" element={<DatasetSourcesPage />} />
         <Route path="/settings" element={<SettingsModelPage />} />
         <Route path="/map" element={<MapPage />} />
         <Route path="/reports" element={<IncidentReportsPage />} />

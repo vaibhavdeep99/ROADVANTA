@@ -83,27 +83,39 @@ class RoadVideoProcessor:
 
                 cv2.imwrite(frame_filepath, display_frame)
 
-                sampled_results.append({
+                frame_entry = {
                     "frame_index": frame_idx,
                     "timestamp_sec": timestamp_sec,
+                    "timestamp_seconds": timestamp_sec,
                     "formatted_timestamp": formatted_ts,
+                    "timestamp_formatted": formatted_ts,
                     "frame_image_url": f"/uploads/video_frames/{frame_filename}",
+                    "frame_url": f"/uploads/video_frames/{frame_filename}",
                     "detections_count": det_count,
                     "detections": inference.get("detections", []),
                     "severity": inference.get("preliminary_severity", "low")
-                })
+                }
+                sampled_results.append(frame_entry)
 
             frame_idx += 1
 
         cap.release()
 
+        frames_with_dets = sum(1 for f in sampled_results if f["detections_count"] > 0)
+
         return {
             "video_duration_sec": round(duration, 2),
             "sampled_frames_count": len(sampled_results),
-            "sampling_interval_sec": sampling_interval_sec,
+            "total_frames_sampled": len(sampled_results),
+            "frames_with_detections": frames_with_dets,
+            "total_detections_found": total_detections_in_video,
             "total_frame_detections": total_detections_in_video,
             "max_detections_per_frame": max_detections_single_frame,
+            "sampling_interval_sec": sampling_interval_sec,
+            "fps": round(fps, 1),
             "frames": sampled_results,
+            "sampled_frames": sampled_results,
+            "explanation": f"Extracted {len(sampled_results)} keyframes at {sampling_interval_sec}s intervals. Found {total_detections_in_video} defect observation(s) across {frames_with_dets} frame(s).",
             "tracking_note": (
                 "Frame detections indicate defect observations across video playback. "
                 "Multiple detections across successive frames may represent the same physical pothole "

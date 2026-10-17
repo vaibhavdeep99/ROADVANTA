@@ -15,6 +15,8 @@ import {
   FileText,
   Scan,
   ShieldAlert,
+  ShieldCheck,
+  Building,
   Info,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -53,9 +55,13 @@ export const RoadVisionLabPage: React.FC = () => {
   const [splitPos, setSplitPos] = useState<number>(50);
 
   // Form details for auto-saving report
-  const [reportCity, setReportCity] = useState<string>('Indore');
-  const [reportAddress, setReportAddress] = useState<string>('AB Road Corridor, Near Bypass');
+  const [reportCity, setReportCity] = useState<string>('Unnao');
+  const [reportAddress, setReportAddress] = useState<string>('NH-27 Industrial Leather Belt, Unnao');
   const [savedReportId, setSavedReportId] = useState<string | null>(null);
+
+  // AI Second-Opinion / Engineering Audit state
+  const [aiAudit, setAiAudit] = useState<any | null>(null);
+  const [isAuditing, setIsAuditing] = useState<boolean>(false);
 
   // Fetch model status on mount
   useEffect(() => {
@@ -137,14 +143,65 @@ export const RoadVisionLabPage: React.FC = () => {
       setAnalysisResult(res);
       if (res.saved_report) {
         setSavedReportId(res.saved_report.id);
-        toast.success(`Saved as report ${res.saved_report.id}!`);
+        toast.success(`Saved as report ${res.saved_report.id}! Synced with Authority Portal.`);
       } else {
         toast.success('Inference completed.');
+      }
+
+      // Auto-trigger AI Pavement Engineering Verification
+      try {
+        const audit = await prismApi.verifyDefectWithAi({
+          report_id: res.saved_report?.id,
+          detected_count: res.inference.detected_count,
+          max_confidence: res.inference.confidence_score || 0.65,
+          apparent_area_pct: res.inference.severity_factors?.apparent_area_pct || 10.0,
+        });
+        setAiAudit(audit);
+      } catch (e) {
+        console.warn('AI audit auto-trigger silent error:', e);
       }
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Inference analysis failed.');
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleLoadSample = async (samplePath: string, sampleName: string) => {
+    try {
+      toast.loading(`Loading sample image: ${sampleName}...`, { id: 'load-sample' });
+      const response = await fetch(samplePath);
+      const blob = await response.blob();
+      const file = new File([blob], sampleName, { type: 'image/jpeg' });
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(blob));
+      setEnhancedResult(null);
+      setAnalysisResult(null);
+      setSavedReportId(null);
+      setAiAudit(null);
+      toast.loading('Running YOLOv8 neural detection & saving...', { id: 'load-sample' });
+
+      const res = await prismApi.analyzeImage(file, {
+        autoSaveReport: true,
+        city: reportCity || 'Unnao',
+        address: 'NH-27 Industrial Leather Belt, Unnao',
+      });
+      setAnalysisResult(res);
+      if (res.saved_report) {
+        setSavedReportId(res.saved_report.id);
+      }
+
+      // Run AI engineering audit
+      const audit = await prismApi.verifyDefectWithAi({
+        report_id: res.saved_report?.id,
+        detected_count: res.inference.detected_count,
+        max_confidence: res.inference.confidence_score || 0.65,
+        apparent_area_pct: res.inference.severity_factors?.apparent_area_pct || 12.0,
+      });
+      setAiAudit(audit);
+      toast.success(`Detection & AI Engineer Audit Complete! Found ${res.inference.detected_count} defect(s).`, { id: 'load-sample' });
+    } catch (err: any) {
+      toast.error('Sample loading failed: ' + (err.message || 'Error'), { id: 'load-sample' });
     }
   };
 
@@ -341,9 +398,29 @@ export const RoadVisionLabPage: React.FC = () => {
                     <p className="text-xs text-rp-text-muted mt-1 max-w-sm">
                       Select or drag-and-drop a JPG, PNG, or WebP road image (up to 15 MB).
                     </p>
-                    <button className="mt-4 px-4 py-2 rounded-xl bg-rp-accent text-rp-bg font-semibold text-xs hover:bg-cyan-400 transition-all">
-                      Choose File
-                    </button>
+                    <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+                      <button className="px-4 py-2 rounded-xl bg-rp-accent text-rp-bg font-semibold text-xs hover:bg-cyan-400 transition-all shadow-sm">
+                        Choose File
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLoadSample('/samples/sample_pothole_nh27.jpg', 'sample_pothole_nh27.jpg');
+                        }}
+                        className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        ⚡ Try Sample 1: NH-27 Pothole Crater
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLoadSample('/samples/sample_clear_road.jpg', 'sample_clear_road.jpg');
+                        }}
+                        className="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        ⚡ Try Sample 2: Clear Road (0 Defects)
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -415,17 +492,64 @@ export const RoadVisionLabPage: React.FC = () => {
                 </div>
 
                 {savedReportId && (
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-emerald-400 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-emerald-400 text-xs">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                       <span>Report saved in database as <strong>{savedReportId}</strong></span>
                     </div>
-                    <a
-                      href="/reports"
-                      className="flex items-center gap-1 font-semibold underline text-emerald-300 hover:text-emerald-200"
-                    >
-                      View in Report Registry <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
+                    <div className="flex items-center gap-3">
+                      <a
+                        href="/authority"
+                        className="font-semibold text-cyan-300 hover:text-cyan-200 underline flex items-center gap-1"
+                      >
+                        <Building className="w-3.5 h-3.5" /> Authority Portal ↗
+                      </a>
+                      <a
+                        href="/reports"
+                        className="flex items-center gap-1 font-semibold underline text-emerald-300 hover:text-emerald-200"
+                      >
+                        Reports Registry <ArrowRight className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Structural Pavement Engineer Verification Audit */}
+                {aiAudit && (
+                  <div className="p-4 rounded-xl bg-rp-bg-secondary border border-rp-accent/30 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rp-border pb-2">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5 text-rp-accent" />
+                        <div>
+                          <h4 className="font-heading font-bold text-xs text-rp-text">
+                            AI Pavement Engineer Verification Audit
+                          </h4>
+                          <span className="text-[10px] text-rp-text-muted">
+                            Engine: {aiAudit.engine}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        {aiAudit.verdict_label}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-rp-text-secondary space-y-2">
+                      <p className="leading-relaxed">
+                        <strong className="text-rp-text">Structural Diagnosis: </strong>
+                        {aiAudit.structural_analysis}
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
+                        <div className="p-2 rounded-lg bg-rp-card border border-rp-border">
+                          <span className="text-rp-text-muted block">Recommended Repair:</span>
+                          <span className="text-rp-text font-semibold">{aiAudit.recommended_repair}</span>
+                        </div>
+                        <div className="p-2 rounded-lg bg-rp-card border border-rp-border">
+                          <span className="text-rp-text-muted block">Assigned Unit & Timeline:</span>
+                          <span className="text-cyan-400 font-semibold">{aiAudit.assigned_department} ({aiAudit.dispatch_window})</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
