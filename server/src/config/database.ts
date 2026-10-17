@@ -10,6 +10,9 @@ const connectDB = async (): Promise<void> => {
       serverSelectionTimeoutMS: 10000, // 10s timeout for cloud Atlas
     });
     console.log(`✅ MongoDB Connected: ${conn.connection.host}:${conn.connection.port}/${conn.connection.name}`);
+    // Auto-seed database if empty
+    const { seedDatabaseIfEmpty } = await import('../models/seedHelper');
+    await seedDatabaseIfEmpty();
   } catch (error: any) {
     console.warn(`⚠️  MongoDB not available (${error.message}).`);
     console.log(`⚡ Activated Resilient In-Memory & File Store with Seed Data.`);

@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { reportStore } from '../data/store';
+import { ReportModel } from '../models/Report';
 import { upload } from '../middleware/upload';
 import { analyzeRoadImage } from '../services/aiDetection';
 import { AuthenticatedRequest, authenticate, requireAuth } from '../middleware/auth';
@@ -31,7 +33,7 @@ const sanitizeString = (str: any, maxLength = 200): string => {
 };
 
 // GET /api/v1/reports
-router.get('/', (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const {
       category,
@@ -46,25 +48,59 @@ router.get('/', (req: Request, res: Response) => {
       west,
     } = req.query;
 
-    let bounds: { north: number; south: number; east: number; west: number } | undefined;
-    if (north && south && east && west) {
-      bounds = {
-        north: parseFloat(north as string),
-        south: parseFloat(south as string),
-        east: parseFloat(east as string),
-        west: parseFloat(west as string),
-      };
+    let reports: any[] = [];
+
+    // 1. Query from MongoDB Atlas if connected
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const query: any = {};
+        if (category && category !== 'all') query.category = category;
+        if (severity && severity !== 'all') query.estimatedSeverity = severity;
+        if (resolutionStatus && resolutionStatus !== 'all') query.resolutionStatus = resolutionStatus;
+        if (verificationStatus && verificationStatus !== 'all') query.verificationStatus = verificationStatus;
+        if (city) query.city = new RegExp(sanitizeString(city as string, 50), 'i');
+        if (search) {
+          const q = sanitizeString(search as string, 100);
+          query.$or = [
+            { title: new RegExp(q, 'i') },
+            { description: new RegExp(q, 'i') },
+            { address: new RegExp(q, 'i') },
+            { reportNumber: new RegExp(q, 'i') },
+          ];
+        }
+        if (north && south && east && west) {
+          query['location.coordinates.0'] = { $gte: parseFloat(west as string), $lte: parseFloat(east as string) };
+          query['location.coordinates.1'] = { $gte: parseFloat(south as string), $lte: parseFloat(north as string) };
+        }
+
+        reports = await ReportModel.find(query).sort({ priorityScore: -1, createdAt: -1 }).lean();
+      } catch (e) {
+        console.warn('MongoDB Atlas query note, using memory fallback:', e);
+      }
     }
 
-    const reports = reportStore.getAll({
-      category: category as string,
-      severity: severity as string,
-      resolutionStatus: resolutionStatus as string,
-      verificationStatus: verificationStatus as string,
-      search: search ? sanitizeString(search as string, 100) : undefined,
-      city: city ? sanitizeString(city as string, 50) : undefined,
-      bounds,
-    });
+    // 2. Fallback to resilient in-memory store if DB query returned 0 or wasn't connected
+    if (!reports || reports.length === 0) {
+      let bounds: { north: number; south: number; east: number; west: number } | undefined;
+      if (north && south && east && west) {
+        bounds = {
+          north: parseFloat(north as string),
+          south: parseFloat(south as string),
+          east: parseFloat(east as string),
+          west: parseFloat(west as string),
+        };
+      }
+
+      reports = reportStore.getAll({
+        category: category as string,
+        severity: severity as string,
+        resolutionStatus: resolutionStatus as string,
+        verificationStatus: verificationStatus as string,
+        search: search ? sanitizeString(search as string, 100) : undefined,
+        city: city ? sanitizeString(city as string, 50) : undefined,
+        bounds,
+      });
+    }
 
     res.json({
       success: true,
@@ -77,11 +113,21 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 // GET /api/v1/reports/:id
-router.get('/:id', (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const sanitizedId = sanitizeString(id, 60);
-    const report = reportStore.getById(sanitizedId);
+
+    let report: any;
+    if (mongoose.connection.readyState === 1) {
+      try {
+        report = await ReportModel.findOne({ id: sanitizedId }).lean();
+      } catch {}
+    }
+
+    if (!report) {
+      report = reportStore.getById(sanitizedId);
+    }
 
     if (!report) {
       res.status(404).json({ success: false, error: { message: 'Report not found' } });
@@ -172,6 +218,11 @@ router.post('/', authenticate, upload.single('image'), async (req: Authenticated
       detection,
     });
 
+    // Write to MongoDB Atlas as well
+    if (mongoose.connection.readyState === 1) {
+      ReportModel.create(newReport).catch((e) => console.warn('Atlas save note:', e.message));
+    }
+
     res.status(201).json({
       success: true,
       data: newReport,
@@ -226,6 +277,11 @@ router.patch('/:id', authenticate, requireAuth, (req: AuthenticatedRequest, res:
 
     const updated = reportStore.update(id, updates, user.name, user.role);
 
+    // Sync update to MongoDB Atlas
+    if (mongoose.connection.readyState === 1) {
+      ReportModel.findOneAndUpdate({ id }, { $set: updates }).catch((e) => console.warn('Atlas update note:', e.message));
+    }
+
     res.json({
       success: true,
       data: updated,
@@ -265,6 +321,11 @@ router.delete('/:id', authenticate, requireAuth, (req: AuthenticatedRequest, res
       return;
     }
 
+    // Delete from MongoDB Atlas
+    if (mongoose.connection.readyState === 1) {
+      ReportModel.deleteOne({ id }).catch((e) => console.warn('Atlas delete note:', e.message));
+    }
+
     res.json({ success: true, message: 'Report deleted successfully.' });
   } catch (error: any) {
     res.status(500).json({ success: false, error: { message: 'Failed to delete report.' } });
@@ -280,6 +341,15 @@ router.post('/:id/vote', (req: Request, res: Response) => {
     res.status(404).json({ success: false, error: { message: result.message } });
     return;
   }
+
+  // Update vote count in MongoDB Atlas
+  if (mongoose.connection.readyState === 1) {
+    ReportModel.findOneAndUpdate(
+      { id },
+      { $inc: { votes: 1 }, $push: { votedIps: ip } }
+    ).catch((e) => console.warn('Atlas vote note:', e.message));
+  }
+
   res.json({ success: true, data: result });
 });
 
