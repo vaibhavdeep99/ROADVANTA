@@ -2,6 +2,9 @@ import mongoose from 'mongoose';
 import config from './index';
 
 const connectDB = async (): Promise<void> => {
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
   try {
     const conn = await mongoose.connect(config.mongodb.uri, {
       serverSelectionTimeoutMS: 10000, // 10s timeout for cloud Atlas

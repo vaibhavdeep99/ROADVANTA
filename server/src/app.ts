@@ -10,8 +10,12 @@ import authRoutes from './routes/auth';
 import reportsRoutes from './routes/reports';
 import detectRoutes from './routes/detect';
 import analyticsRoutes from './routes/analytics';
+import connectDB from './config/database';
 
 const app = express();
+
+// Initialize MongoDB connection for serverless/express runtime
+connectDB().catch((err) => console.warn('Database init warning:', err.message));
 
 // 1. Enhanced Security Headers
 app.use(
