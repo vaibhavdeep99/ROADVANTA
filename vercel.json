@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build --prefix client",
+  "outputDirectory": "client/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "/hazards/$1"
+    },
+    {
+      "source": "/((?!api|uploads).*)$",
+      "destination": "/index.html"
+    }
+  ]
+}

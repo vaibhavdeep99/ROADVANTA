@@ -57,6 +57,23 @@ app.use('/api/v1/reports', reportsRoutes);
 app.use('/api/v1/detect', detectRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 
+// Static files for client build when running as full-stack app
+const clientDistPath = path.join(__dirname, '..', '..', 'client', 'dist');
+try {
+  const fs = require('fs');
+  if (fs.existsSync(clientDistPath)) {
+    app.use(express.static(clientDistPath));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+        return next();
+      }
+      res.sendFile(path.join(clientDistPath, 'index.html'));
+    });
+  }
+} catch {
+  // Silent fallback
+}
+
 // 404 handler
 app.use(notFound);
 
