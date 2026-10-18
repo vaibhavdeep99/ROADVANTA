@@ -242,16 +242,15 @@ export const ResolutionTrackingPage: React.FC = () => {
                             <CheckCircle2 className="w-3 h-3" /> Repaired
                           </span>
                         )}
-                        <a
-                          href={`/api/reports/${r.id}/pdf`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => prismApi.downloadReportPdf(r.id, `${r.reportNumber || r.id}_Audit_Report.pdf`)}
                           className="px-2.5 py-1 rounded-lg bg-rp-accent/15 border border-rp-accent/30 text-rp-accent hover:bg-rp-accent hover:text-rp-bg font-semibold text-xs flex items-center gap-1 transition-all shadow-sm"
                           title="Download Statutory Engineering Audit PDF"
                         >
                           <FileText className="w-3.5 h-3.5" />
                           <span>PDF</span>
-                        </a>
+                        </button>
 
                         <button
                           onClick={() => {
@@ -406,16 +405,15 @@ export const ResolutionTrackingPage: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-rp-border">
-                <a
-                  href={`/api/reports/${selectedReport.id}/pdf`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => prismApi.downloadReportPdf(selectedReport.id, `${selectedReport.reportNumber || selectedReport.id}_Audit_Report.pdf`)}
                   className="px-3.5 py-2 rounded-lg bg-rp-accent/15 border border-rp-accent/30 text-rp-accent hover:bg-rp-accent hover:text-rp-bg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
                   title="Generate Statutory PDF Audit Report"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   Official PDF Audit Report
-                </a>
+                </button>
 
                 <div className="flex items-center gap-2">
                   <button

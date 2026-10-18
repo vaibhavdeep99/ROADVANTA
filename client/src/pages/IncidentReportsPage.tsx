@@ -205,16 +205,15 @@ export const IncidentReportsPage: React.FC = () => {
                   {r.resolutionStatus === 'in_progress' ? 'In Progress' : r.resolutionStatus}
                 </span>
 
-                <a
-                  href={`/api/reports/${r.id}/pdf`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => prismApi.downloadReportPdf(r.id, `${r.reportNumber || r.id}_Audit_Report.pdf`)}
                   className="px-3 py-2 rounded-lg bg-rp-accent/15 border border-rp-accent/30 text-rp-accent hover:bg-rp-accent hover:text-rp-bg font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
                   title="Download Official Engineering Audit PDF"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Audit PDF</span>
-                </a>
+                </button>
 
                 <button
                   onClick={() => setSelectedCase(r)}
@@ -268,15 +267,14 @@ export const IncidentReportsPage: React.FC = () => {
             </div>
 
             <div className="flex gap-2">
-              <a
-                href={`/api/reports/${selectedCase.id}/pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-2.5 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs uppercase flex items-center justify-center gap-2 shadow-glow-cyan"
+              <button
+                type="button"
+                onClick={() => prismApi.downloadReportPdf(selectedCase.id, `${selectedCase.reportNumber || selectedCase.id}_Engineering_Audit_Report.pdf`)}
+                className="flex-1 py-2.5 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs uppercase flex items-center justify-center gap-2 shadow-glow-cyan hover:bg-cyan-400 transition-all"
               >
                 <Download className="w-4 h-4" />
                 Download Engineering Audit PDF
-              </a>
+              </button>
               <button
                 onClick={() => setSelectedCase(null)}
                 className="px-5 py-2.5 rounded-lg bg-rp-bg border border-rp-border text-rp-text font-heading font-bold text-xs uppercase hover:bg-rp-card transition-colors"

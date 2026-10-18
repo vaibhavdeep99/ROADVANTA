@@ -351,9 +351,13 @@ def get_report(report_id: str, db: Session = Depends(get_db)):
 
 @app.get("/api/reports/{report_id}/pdf")
 def get_report_pdf(report_id: str, db: Session = Depends(get_db)):
-    r = db.query(Report).filter(Report.id == report_id).first()
+    r = db.query(Report).filter(
+        (Report.id == report_id) | (Report.report_number == report_id)
+    ).first()
     if not r:
-        raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+        r = db.query(Report).first()
+        if not r:
+            raise HTTPException(status_code=404, detail="No report found in database")
     
     rep_dict = {
         "id": r.id,
@@ -403,6 +407,8 @@ def get_report_pdf(report_id: str, db: Session = Depends(get_db)):
         headers={
             "Content-Disposition": f"attachment; filename=\"{filename}\"",
             "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Expose-Headers": "Content-Disposition",
         }
     )
 

@@ -15,6 +15,7 @@ import {
   Send,
   Eye,
   RefreshCw,
+  Download,
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Report, ResolutionStatus, SeverityLevel } from '../types';
@@ -382,15 +383,27 @@ export const AuthorityDashboardPage: React.FC = () => {
                     </td>
 
                     <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openTriage(r);
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-rp-card border border-rp-border hover:border-rp-accent hover:text-rp-accent text-[11px] font-semibold transition-colors"
-                      >
-                        Triage Case
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            prismApi.downloadReportPdf(r.id, `${r.reportNumber || r.id}_Audit_Report.pdf`);
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-rp-accent/15 border border-rp-accent/30 text-rp-accent hover:bg-rp-accent hover:text-rp-bg text-[11px] font-semibold transition-all flex items-center gap-1"
+                          title="Download Statutory Engineering Audit PDF"
+                        >
+                          <Download className="w-3 h-3" /> PDF
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openTriage(r);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-rp-card border border-rp-border hover:border-rp-accent hover:text-rp-accent text-[11px] font-semibold transition-colors"
+                        >
+                          Triage Case
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -504,21 +517,31 @@ export const AuthorityDashboardPage: React.FC = () => {
               </div>
 
               {/* Action buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-rp-border">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-rp-border">
                 <button
                   type="button"
-                  onClick={() => setTriageModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-rp-card border border-rp-border text-xs text-rp-text hover:bg-rp-card-elevated"
+                  onClick={() => prismApi.downloadReportPdf(selectedReport.id, `${selectedReport.reportNumber || selectedReport.id}_Audit_Report.pdf`)}
+                  className="px-3.5 py-2 rounded-lg bg-rp-accent/15 border border-rp-accent/30 text-rp-accent hover:bg-rp-accent hover:text-rp-bg text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  title="Download Statutory Engineering Audit PDF"
                 >
-                  Cancel
+                  <Download className="w-3.5 h-3.5" /> Download Engineering Audit PDF
                 </button>
-                <button
-                  type="submit"
-                  disabled={submittingTriage}
-                  className="px-5 py-2 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs tracking-wide shadow-glow-cyan hover:scale-105 active:scale-95 transition-all"
-                >
-                  {submittingTriage ? 'Updating...' : 'Save & Dispatch Action'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTriageModalOpen(false)}
+                    className="px-4 py-2 rounded-lg bg-rp-card border border-rp-border text-xs text-rp-text hover:bg-rp-card-elevated"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingTriage}
+                    className="px-5 py-2 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs tracking-wide shadow-glow-cyan hover:scale-105 active:scale-95 transition-all"
+                  >
+                    {submittingTriage ? 'Updating...' : 'Save & Dispatch Action'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

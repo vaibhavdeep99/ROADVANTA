@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 // The client accesses the FastAPI server directly or via Vite proxy
 const defaultBaseUrl =
@@ -256,6 +257,74 @@ export const prismApi = {
     return `${PRISM_API_BASE}/api/reports/${reportId}/pdf`;
   },
 
+  async downloadReportPdf(reportId: string, filename?: string): Promise<void> {
+    toast.loading('Generating Statutory Engineering Audit PDF...', { id: 'pdf-dl' });
+    const directUrl = this.getReportPdfUrl(reportId);
+    const proxyUrl = `/api/reports/${reportId}/pdf`;
+
+    let response: Response | null = null;
+    try {
+      // 1. Try direct FastAPI backend URL first
+      response = await fetch(directUrl, { method: 'GET' });
+    } catch {
+      // 2. Fallback to Vite proxy URL
+      try {
+        response = await fetch(proxyUrl, { method: 'GET' });
+      } catch (err: any) {
+        console.warn('Both direct and proxy fetch failed:', err);
+      }
+    }
+
+    if (!response || !response.ok) {
+      // If direct fetch didn't succeed, try proxy if not tried yet
+      if (response && !response.ok) {
+        try {
+          const fallbackRes = await fetch(proxyUrl, { method: 'GET' });
+          if (fallbackRes.ok) {
+            response = fallbackRes;
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    try {
+      if (!response || !response.ok) {
+        throw new Error(`Server returned HTTP ${response?.status || 500}`);
+      }
+
+      const blob = await response.blob();
+      if (!blob || blob.size === 0) {
+        throw new Error('Received empty PDF file');
+      }
+
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      const downloadName = filename || `${reportId}_Engineering_Audit_Report.pdf`;
+      link.download = downloadName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Delay revocation by 20 seconds so browser download manager has time to read the stream
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blobUrl);
+      }, 20000);
+
+      toast.success(`Statutory Audit PDF Downloaded: ${downloadName}`, { id: 'pdf-dl', duration: 4000 });
+    } catch (err: any) {
+      console.warn('Blob download error, trying direct window.open:', err);
+      try {
+        window.open(directUrl, '_blank');
+        toast.success('Opening Engineering Audit PDF in new tab...', { id: 'pdf-dl' });
+      } catch (openErr: any) {
+        toast.error(`Could not download PDF: ${err.message}`, { id: 'pdf-dl' });
+      }
+    }
+  },
+
   // 7. Dataset Pipeline & Official Accident Analytics
   async getDatasetStatus() {
     const res = await client.get('/api/dataset/status');
@@ -312,4 +381,9 @@ export const getAssetUrl = (path?: string | null): string => {
   return `${PRISM_API_BASE}${clean}`;
 };
 
+if (typeof window !== 'undefined') {
+  (window as any).__downloadReportPdf = (id: string, filename?: string) => prismApi.downloadReportPdf(id, filename);
+}
+
 export default prismApi;
+

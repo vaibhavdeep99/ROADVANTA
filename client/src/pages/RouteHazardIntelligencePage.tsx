@@ -432,8 +432,7 @@ export const RouteHazardIntelligencePage: React.FC = () => {
             <strong style="font-size:12px; display:block; color:#0f172a;">${h.title}</strong>
             <p style="font-size:11px; color:#475569; margin:3px 0 6px 0;">${h.address}</p>
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; border-top:1px solid #e2e8f0; padding-top:4px;">
-              <span style="color:#ef4444; font-weight:700;">⚠️ Speed: Max 25 km/h</span>
-              <a href="/api/reports/${h.id}/pdf" target="_blank" style="color:#0284c7; text-decoration:none; font-weight:700;">PDF Audit →</a>
+              <button onclick="window.__downloadReportPdf('${h.id}', '${h.report_number || h.id}_Audit_Report.pdf')" style="background:#0284c7; color:#ffffff; border:none; border-radius:4px; padding:3px 8px; font-weight:700; font-size:10px; cursor:pointer;">Audit PDF ↓</button>
             </div>
           </div>
         `;
@@ -789,15 +788,17 @@ export const RouteHazardIntelligencePage: React.FC = () => {
                         <span className="font-mono text-rp-accent text-[11px] font-bold">
                           +{(idx * 3.8 + 2.2).toFixed(1)} km from start
                         </span>
-                        <a
-                          href={`/api/reports/${rep.id}/pdf`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1"
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            prismApi.downloadReportPdf(rep.id, `${rep.report_number || rep.id}_Audit_Report.pdf`);
+                          }}
+                          className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 bg-transparent border-none cursor-pointer p-0"
+                          title="Download Official Statutory Engineering Audit PDF"
                         >
                           <FileText className="w-3 h-3" /> Audit PDF
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>

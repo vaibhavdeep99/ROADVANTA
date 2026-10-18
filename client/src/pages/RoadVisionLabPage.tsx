@@ -524,6 +524,17 @@ export const RoadVisionLabPage: React.FC = () => {
                       <span>Report saved in database as <strong>{savedReportId}</strong></span>
                     </div>
                     <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const repId = savedReportId || (analysisResult as any)?.saved_report?.id || '1';
+                          prismApi.downloadReportPdf(repId, `${repId}_Audit_Report.pdf`);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-semibold text-xs flex items-center gap-1.5 transition-all"
+                        title="Download Statutory Engineering Audit PDF"
+                      >
+                        <Download className="w-3.5 h-3.5" /> Audit PDF
+                      </button>
                       <a
                         href="/authority"
                         className="font-semibold text-cyan-300 hover:text-cyan-200 underline flex items-center gap-1"
@@ -575,9 +586,23 @@ export const RoadVisionLabPage: React.FC = () => {
                           <span className="text-cyan-400 font-semibold">{aiAudit.assigned_department} ({aiAudit.dispatch_window})</span>
                         </div>
                       </div>
+                      <div className="pt-2 flex items-center justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const repId = savedReportId || (analysisResult as any)?.saved_report?.id || '1';
+                            prismApi.downloadReportPdf(repId, `Engineering_Audit_${repId}.pdf`);
+                          }}
+                          className="px-4 py-2 rounded-xl bg-rp-accent hover:bg-cyan-400 text-rp-bg font-bold text-xs flex items-center gap-2 shadow-glow-cyan transition-all"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          Download Official Statutory Engineering Audit PDF
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
+
 
                 {/* Autonomous 4-Step Hazard Lifecycle: Detection -> AI Verification -> SLA Assign -> Field Resolution */}
                 <AutonomousHazardLifecycle
