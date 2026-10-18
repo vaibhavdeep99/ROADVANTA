@@ -13,7 +13,7 @@ class PotholeDetectorAdapter:
 
     def __init__(self):
         self.model_path = os.getenv("POTHOLE_MODEL_PATH", "")
-        self.conf_threshold = float(os.getenv("POTHOLE_CONFIDENCE_THRESHOLD", "0.25"))
+        self.conf_threshold = float(os.getenv("POTHOLE_CONFIDENCE_THRESHOLD", "0.15"))
         self._model = None
         self._load_model_if_present()
 

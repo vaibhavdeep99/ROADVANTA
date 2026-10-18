@@ -406,11 +406,29 @@ export const RoadVisionLabPage: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleLoadSample('/samples/sample_pothole_nh27.jpg', 'sample_pothole_nh27.jpg');
+                          handleLoadSample('/samples/rdd_india_pothole_crater.jpg', 'rdd_india_pothole_crater.jpg');
+                        }}
+                        className="px-3 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        ⚡ RDD Pothole (India #348)
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLoadSample('/samples/rdd_india_alligator_pothole.jpg', 'rdd_india_alligator_pothole.jpg');
+                        }}
+                        className="px-3 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        ⚡ RDD Fatigue Crack (India #164)
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLoadSample('/samples/rdd_india_isolated_pothole.jpg', 'rdd_india_isolated_pothole.jpg');
                         }}
                         className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
                       >
-                        ⚡ NH-27 Crater
+                        ⚡ RDD Cavitation (India #93)
                       </button>
                       <button
                         onClick={(e) => {
@@ -420,24 +438,6 @@ export const RoadVisionLabPage: React.FC = () => {
                         className="px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
                       >
                         ⚡ Flooded Pothole
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLoadSample('/samples/sample_traffic_signal_fallen.jpg', 'sample_traffic_signal_fallen.jpg');
-                        }}
-                        className="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
-                      >
-                        ⚡ Fallen Signal
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLoadSample('/samples/sample_vadodara_karelibag.png', 'sample_vadodara_karelibag.png');
-                        }}
-                        className="px-3 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
-                      >
-                        ⚡ Vadodara Defect
                       </button>
                       <button
                         onClick={(e) => {

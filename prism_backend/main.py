@@ -37,8 +37,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve uploaded media files
+# Serve uploaded media files & client sample assets
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
+client_samples = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "client", "public", "samples"))
+if os.path.exists(client_samples):
+    app.mount("/samples", StaticFiles(directory=client_samples), name="samples")
+
+client_evidence = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "client", "public", "evidence"))
+if os.path.exists(client_evidence):
+    app.mount("/evidence", StaticFiles(directory=client_evidence), name="evidence")
 
 # Pydantic Schemas
 class StatusUpdatePayload(BaseModel):
