@@ -122,7 +122,7 @@ export const MapPage: React.FC = () => {
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-rp-accent/15 text-rp-accent border border-rp-accent/30">
                 Geospatial Intelligence
               </span>
-              <span className="text-xs text-rp-text-muted">OpenStreetMap Tile Engine</span>
+              <span className="text-xs text-rp-text-muted">RoadVanta Geospatial Engine</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-heading font-bold text-rp-text">
               Live Road Damage Map
@@ -254,7 +254,7 @@ export const MapPage: React.FC = () => {
                     Reports without validated GPS coordinates are categorized as "Location Unavailable" and excluded from map pins.
                   </span>
                 </div>
-                <span className="font-mono text-[10px] text-rp-accent">© OpenStreetMap</span>
+                <span className="font-mono text-[10px] text-rp-accent">RoadVanta Neural Geospatial</span>
               </div>
             </div>
           </div>

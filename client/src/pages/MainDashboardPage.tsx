@@ -205,7 +205,7 @@ export const MainDashboardPage: React.FC = () => {
                 style={{ width: '100%', height: '100%' }}
               >
                 <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  attribution='RoadVanta Neural Engine'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 

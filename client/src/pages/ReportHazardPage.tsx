@@ -304,7 +304,7 @@ export const ReportHazardPage: React.FC = () => {
                             Analyzing Hazard Image...
                           </span>
                           <span className="text-[11px] text-rp-text-muted">
-                            Gemini Vision Neural Classification
+                            RoadVanta YOLOv8 Neural Classification (Active)
                           </span>
                         </div>
                       </div>
@@ -438,7 +438,7 @@ export const ReportHazardPage: React.FC = () => {
                   style={{ width: '100%', height: '100%' }}
                 >
                   <TileLayer
-                    attribution='&copy; OpenStreetMap'
+                    attribution='RoadVanta Geospatial'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
                   <MapPanTo coords={coords} />

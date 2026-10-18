@@ -135,7 +135,7 @@ export const AiDetectionStudioPage: React.FC = () => {
           explanation: d.explanation || d.safetySummary || 'Optical road surface evaluation complete.',
           recommendedAction: d.recommendedAction || 'Schedule road inspection.',
           limitations: d.limitations || 'Optical visual analysis only. Does not replace core ultrasound testing.',
-          modelIdentifier: d.modelIdentifier || d.detection?.modelName || 'Gemini 3.8 Flash Vision',
+          modelIdentifier: d.modelIdentifier || d.detection?.modelName || 'RoadVanta YOLOv8 Neural Engine (Active)',
           timestamp: d.timestamp || new Date().toISOString(),
           boundingBoxes: boxes,
         });
@@ -213,7 +213,7 @@ export const AiDetectionStudioPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rp-accent/15 border border-rp-accent/30 text-rp-accent text-xs font-semibold mb-2 shadow-glow-cyan">
             <Sparkles className="w-3.5 h-3.5" />
-            Gemini 3.8 Flash Vision Engine
+            RoadVanta YOLOv8 Neural Vision Engine (Active)
           </div>
           <h1 className="text-2xl sm:text-3xl font-heading font-bold text-rp-text">
             AI Detection Studio
@@ -273,7 +273,7 @@ export const AiDetectionStudioPage: React.FC = () => {
                 {analyzing ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    Analyzing with Gemini Vision...
+                    Analyzing with YOLOv8 Engine...
                   </>
                 ) : (
                   <>

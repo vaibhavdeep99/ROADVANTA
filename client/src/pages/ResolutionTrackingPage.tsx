@@ -12,6 +12,8 @@ import {
   ChevronRight,
   AlertTriangle,
   RefreshCw,
+  FileText,
+  Download,
 } from 'lucide-react';
 import { SidebarLayout } from '../components/SidebarLayout';
 import { Report, ResolutionStatus } from '../types';
@@ -240,6 +242,17 @@ export const ResolutionTrackingPage: React.FC = () => {
                             <CheckCircle2 className="w-3 h-3" /> Repaired
                           </span>
                         )}
+                        <a
+                          href={`/api/reports/${r.id}/pdf`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1 rounded-lg bg-rp-accent/15 border border-rp-accent/30 text-rp-accent hover:bg-rp-accent hover:text-rp-bg font-semibold text-xs flex items-center gap-1 transition-all shadow-sm"
+                          title="Download Statutory Engineering Audit PDF"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>PDF</span>
+                        </a>
+
                         <button
                           onClick={() => {
                             setSelectedReport(r);
@@ -392,20 +405,33 @@ export const ResolutionTrackingPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-rp-border">
-                <button
-                  type="button"
-                  onClick={() => setTriageOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-rp-card border border-rp-border text-xs text-rp-text"
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-rp-border">
+                <a
+                  href={`/api/reports/${selectedReport.id}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 rounded-lg bg-rp-accent/15 border border-rp-accent/30 text-rp-accent hover:bg-rp-accent hover:text-rp-bg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                  title="Generate Statutory PDF Audit Report"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs shadow-glow-cyan"
-                >
-                  Commit Status & Evidence
-                </button>
+                  <FileText className="w-3.5 h-3.5" />
+                  Official PDF Audit Report
+                </a>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTriageOpen(false)}
+                    className="px-4 py-2 rounded-lg bg-rp-card border border-rp-border text-xs text-rp-text hover:bg-rp-bg-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs shadow-glow-cyan"
+                  >
+                    Commit Status & Evidence
+                  </button>
+                </div>
               </div>
             </form>
           </div>

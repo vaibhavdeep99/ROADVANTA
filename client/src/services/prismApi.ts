@@ -30,9 +30,9 @@ export interface ModelStatusResponse {
   confidence_threshold: number;
   supported_architectures: string[];
   training_pipeline_compatibility: string[];
-  colab_instructions: string;
-  roboflow_compatibility: string;
   instructions: string;
+  engine_version?: string;
+  pipeline_type?: string;
 }
 
 export interface VisionEnhancementParams {

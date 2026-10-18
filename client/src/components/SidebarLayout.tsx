@@ -22,6 +22,8 @@ import {
   Video,
   Settings,
   Database,
+  Satellite,
+  Compass,
 } from 'lucide-react';
 import { JudgeDemoTour } from './JudgeDemoTour';
 
@@ -41,22 +43,31 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
-  const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-    { name: 'Road Vision Lab', path: '/vision-lab', icon: <Sparkles className="w-5 h-5" />, badge: 'OpenCV' },
-    { name: 'Video Detection Lab', path: '/video-lab', icon: <Video className="w-5 h-5" />, badge: 'Frames' },
-    { name: 'Live Road Map', path: '/map', icon: <MapPin className="w-5 h-5" /> },
-    { name: 'Reports Registry', path: '/reports', icon: <FileText className="w-5 h-5" /> },
-    { name: 'Maintenance Priorities', path: '/authority', icon: <ShieldAlert className="w-5 h-5" />, badge: 'Priorities' },
-    { name: 'Road Analytics', path: '/statistics', icon: <BarChart3 className="w-5 h-5" /> },
-    { name: 'Datasets & Stats', path: '/datasets', icon: <Database className="w-5 h-5" />, badge: 'MoRTH' },
-    { name: 'Model & Settings', path: '/settings', icon: <Settings className="w-5 h-5" />, badge: 'YOLO' },
+  const citizenNav = [
+    { name: 'Citizen Report Portal', path: '/report', icon: <MapPin className="w-4 h-4" /> },
+    { name: 'Public Incident Registry', path: '/reports', icon: <FileText className="w-4 h-4" /> },
   ];
+
+  const authorityNav = [
+    { name: 'Authority Triage', path: '/authority', icon: <ShieldAlert className="w-4 h-4" />, badge: 'Priority' },
+    { name: 'Resolution Pipeline', path: '/tracking', icon: <CheckCircle2 className="w-4 h-4" /> },
+    { name: 'Road Safety Analytics', path: '/statistics', icon: <BarChart3 className="w-4 h-4" /> },
+  ];
+
+  const aiNav = [
+    { name: 'Satellite Route Navigation', path: '/route', icon: <Satellite className="w-4 h-4" />, badge: 'Satellite' },
+    { name: 'Live Damage Map', path: '/map', icon: <Compass className="w-4 h-4" /> },
+    { name: 'Road Vision Lab', path: '/vision-lab', icon: <Sparkles className="w-4 h-4" />, badge: 'OpenCV' },
+    { name: 'Video Detection Lab', path: '/video-lab', icon: <Video className="w-4 h-4" />, badge: 'Frames' },
+    { name: 'YOLO Engine & Status', path: '/settings', icon: <Settings className="w-4 h-4" />, badge: 'YOLOv8 Active' },
+  ];
+
+  const allNavItems = [...citizenNav, ...authorityNav, ...aiNav];
 
   return (
     <div className="min-h-screen bg-rp-bg text-rp-text flex flex-col lg:flex-row">
       {/* ===== DESKTOP LEFT SIDEBAR ===== */}
-      <aside className="hidden lg:flex w-64 bg-rp-bg-secondary border-r border-rp-border flex-col justify-between h-screen sticky top-0 z-30">
+      <aside className="hidden lg:flex w-64 bg-rp-bg-secondary border-r border-rp-border flex-col justify-between h-screen sticky top-0 z-30 overflow-y-auto">
         <div>
           {/* Brand Header */}
           <div className="h-16 flex items-center px-6 border-b border-rp-border/60">
@@ -69,42 +80,122 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               </div>
               <div>
                 <span className="font-heading font-bold text-rp-text text-base tracking-tight flex items-center gap-1.5">
-                  PRISM ROAD AI
+                  RoadVanta AI
                 </span>
-                <span className="text-[10px] text-rp-text-muted block leading-none">See Damage. Fix Smarter.</span>
+                <span className="text-[10px] text-rp-text-muted block leading-none">Autonomous Road Perception</span>
               </div>
             </Link>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1">
-            {navItems.map((item) => {
-              const active = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
-                    active
-                      ? 'bg-rp-accent/15 text-rp-accent border border-rp-accent/30 shadow-glow-cyan'
-                      : 'text-rp-text-secondary hover:text-rp-text hover:bg-rp-card'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={active ? 'text-rp-accent' : 'text-rp-text-muted group-hover:text-rp-accent'}>
-                      {item.icon}
-                    </span>
-                    <span>{item.name}</span>
-                  </div>
-                  {item.badge && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rp-accent text-rp-bg">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Grouped Navigation */}
+          <div className="p-3 space-y-4">
+            {/* 1. CITIZEN PORTAL */}
+            <div>
+              <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-rp-text-muted">
+                Citizen Portal
+              </div>
+              <div className="space-y-0.5">
+                {citizenNav.map((item) => {
+                  const active = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group ${
+                        active
+                          ? 'bg-rp-accent/15 text-rp-accent border border-rp-accent/30 shadow-glow-cyan'
+                          : 'text-rp-text-secondary hover:text-rp-text hover:bg-rp-card'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className={active ? 'text-rp-accent' : 'text-rp-text-muted group-hover:text-rp-accent'}>
+                          {item.icon}
+                        </span>
+                        <span>{item.name}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 2. PWD / AUTHORITY COMMAND */}
+            <div>
+              <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-rp-text-muted">
+                Authority Command
+              </div>
+              <div className="space-y-0.5">
+                {authorityNav.map((item) => {
+                  const active = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group ${
+                        active
+                          ? 'bg-rp-accent/15 text-rp-accent border border-rp-accent/30 shadow-glow-cyan'
+                          : 'text-rp-text-secondary hover:text-rp-text hover:bg-rp-card'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className={active ? 'text-rp-accent' : 'text-rp-text-muted group-hover:text-rp-accent'}>
+                          {item.icon}
+                        </span>
+                        <span>{item.name}</span>
+                      </div>
+                      {item.badge && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3. AI PERCEPTION & NAVIGATION */}
+            <div>
+              <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-rp-accent flex items-center justify-between">
+                <span>AI & Navigation</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <div className="space-y-0.5">
+                {aiNav.map((item) => {
+                  const active = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group ${
+                        active
+                          ? 'bg-rp-accent/15 text-rp-accent border border-rp-accent/30 shadow-glow-cyan'
+                          : 'text-rp-text-secondary hover:text-rp-text hover:bg-rp-card'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className={active ? 'text-rp-accent' : 'text-rp-text-muted group-hover:text-rp-accent'}>
+                          {item.icon}
+                        </span>
+                        <span>{item.name}</span>
+                      </div>
+                      {item.badge && (
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                          item.badge.includes('Active')
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : item.badge === 'Satellite'
+                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                            : 'bg-rp-accent text-rp-bg'
+                        }`}>
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* User Persona & Role Switcher Footer */}
@@ -179,11 +270,11 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               <Search className="w-4 h-4 text-rp-text-muted absolute left-3 top-2.5" />
               <input
                 type="text"
-                placeholder="Search location, hazard type, or report ID..."
+                placeholder="Search location, hazard type, or corridor..."
                 className="w-full pl-9 pr-4 py-2 bg-rp-card border border-rp-border rounded-xl text-xs text-rp-text placeholder:text-rp-text-muted focus:outline-none focus:border-rp-accent transition-colors"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    navigate(`/map?search=${encodeURIComponent((e.target as HTMLInputElement).value)}`);
+                    navigate(`/route?search=${encodeURIComponent((e.target as HTMLInputElement).value)}`);
                   }
                 }}
               />
@@ -197,18 +288,15 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-rp-accent to-cyan-400 text-rp-bg font-heading font-bold text-xs tracking-wide shadow-glow-cyan hover:scale-105 transition-all"
             >
               <Scan className="w-3.5 h-3.5" />
-              <span>AI Scan Hazard</span>
+              <span>YOLOv8 Scan</span>
             </Link>
 
             <Link
-              to="/map"
+              to="/route"
               className="p-2 rounded-lg bg-rp-card border border-rp-border hover:border-rp-accent/50 text-rp-text relative"
-              title="Notifications"
+              title="Satellite Route Navigation"
             >
-              <Bell className="w-4 h-4 text-rp-accent" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center animate-pulse">
-                3
-              </span>
+              <Satellite className="w-4 h-4 text-rp-accent" />
             </Link>
 
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-rp-accent flex items-center justify-center font-bold text-xs text-rp-bg">
@@ -220,11 +308,11 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
         {/* Mobile Sidebar Overlay */}
         {mobileSidebarOpen && (
           <div className="lg:hidden fixed inset-0 z-40 bg-rp-bg/80 backdrop-blur-md flex">
-            <div className="w-64 bg-rp-bg-secondary h-full border-r border-rp-border p-4 flex flex-col justify-between">
+            <div className="w-64 bg-rp-bg-secondary h-full border-r border-rp-border p-4 flex flex-col justify-between overflow-y-auto">
               <div>
                 <div className="flex items-center justify-between pb-4 border-b border-rp-border">
                   <span className="font-heading font-bold text-sm text-rp-text flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-rp-accent" /> ROADVANTA
+                    <Shield className="w-4 h-4 text-rp-accent" /> RoadVanta AI
                   </span>
                   <button onClick={() => setMobileSidebarOpen(false)} className="text-rp-text-muted">
                     <X className="w-5 h-5" />
@@ -232,19 +320,26 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
                 </div>
 
                 <nav className="mt-4 space-y-1">
-                  {navItems.map((item) => (
+                  {allNavItems.map((item) => (
                     <Link
                       key={item.path}
                       to={item.path}
                       onClick={() => setMobileSidebarOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold ${
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold ${
                         location.pathname === item.path
                           ? 'bg-rp-accent/15 text-rp-accent'
                           : 'text-rp-text-secondary hover:text-rp-text'
                       }`}
                     >
-                      {item.icon}
-                      <span>{item.name}</span>
+                      <div className="flex items-center gap-3">
+                        {item.icon}
+                        <span>{item.name}</span>
+                      </div>
+                      {item.badge && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rp-accent text-rp-bg">
+                          {item.badge}
+                        </span>
+                      )}
                     </Link>
                   ))}
                 </nav>

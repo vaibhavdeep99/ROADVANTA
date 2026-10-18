@@ -16,7 +16,7 @@ import RoadVisionLabPage from './pages/RoadVisionLabPage';
 import VideoDetectionLabPage from './pages/VideoDetectionLabPage';
 import SettingsModelPage from './pages/SettingsModelPage';
 import DatasetSourcesPage from './pages/DatasetSourcesPage';
-import GeminiRoadAssistant from './components/GeminiRoadAssistant';
+import RoadVantaAssistant from './components/RoadVantaAssistant';
 import './index.css';
 
 function App() {
@@ -68,8 +68,8 @@ function App() {
         <Route path="/intelligence" element={<AreaIntelligencePage />} />
         <Route path="/report" element={<ReportHazardPage />} />
       </Routes>
-      {/* Floating Gemini AI Website Assistant across all pages */}
-      <GeminiRoadAssistant />
+      {/* Floating RoadVanta AI Website Assistant across all pages */}
+      <RoadVantaAssistant />
     </Router>
   );
 }

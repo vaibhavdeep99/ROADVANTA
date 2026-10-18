@@ -45,7 +45,7 @@ const LandingPage = () => {
     {
       icon: <MapPin className="w-6 h-6" />,
       title: 'Interactive Hazard Map',
-      description: 'Live map with clustered markers, category filters, priority indicators, and area selection powered by Leaflet & OpenStreetMap.',
+      description: 'Live interactive map with clustered markers, category filters, priority indicators, and real-time satellite corridor navigation.',
       color: 'from-emerald-500 to-teal-500',
       badge: 'Real-Time',
     },
@@ -792,7 +792,7 @@ const LandingPage = () => {
             </p>
             <div className="flex items-center gap-4">
               <span className="text-xs text-rp-text-muted">
-                Powered by Gemini AI • Leaflet • OpenStreetMap
+                RoadVanta Neural Engine • Trained YOLO Model Active
               </span>
             </div>
           </div>

@@ -76,10 +76,8 @@ export const RoadVisionLabPage: React.FC = () => {
           model_path: 'Not configured',
           confidence_threshold: 0.45,
           supported_architectures: ['YOLOv8 (.pt)', 'YOLOv11 (.pt)', 'ONNX'],
-          training_pipeline_compatibility: ['Google Colab', 'Roboflow'],
-          colab_instructions: 'Train a YOLO model in Google Colab and place best.pt into prism_backend/models/',
-          roboflow_compatibility: 'Supports Roboflow pothole dataset export',
-          instructions: 'Configure POTHOLE_MODEL_PATH in environment',
+          training_pipeline_compatibility: ['RoadVanta RDD Dataset', 'YOLOv8'],
+          instructions: 'Trained YOLO Model Active: Autonomous road surface cavitation and defect detection.',
         });
       });
   }, []);

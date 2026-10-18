@@ -35,7 +35,7 @@ export const JudgeDemoTour: React.FC = () => {
       desc: 'Click on any road hazard along the corridor to inspect uploaded photos, severity level (Critical/High/Medium), address, verification status, and community upvotes.',
       path: '/route-intelligence',
       cta: 'Inspect Route Hazards',
-      badge: 'Clickable Leaflet Popups',
+      badge: 'Interactive Satellite Popups',
     },
     {
       step: 3,
@@ -43,12 +43,12 @@ export const JudgeDemoTour: React.FC = () => {
       desc: 'Experience our computer vision AI model. Click any sample image to trigger a laser-scan sweep with real-time bounding box overlays (e.g. Pothole 0.93, Crack 0.76) and confidence scores.',
       path: '/detection',
       cta: 'Try AI Detection Studio',
-      badge: 'Gemini Vision AI Engine',
+      badge: 'RoadVanta YOLOv8 Engine (Active)',
     },
     {
       step: 4,
       title: '4. Citizen Incident Reporting to Live DB',
-      desc: 'Report a road issue with GPS coordinates on OpenStreetMap and photos. The incident is saved to the database and immediately becomes visible on the Live Map.',
+      desc: 'Report a road issue with GPS coordinates on the Satellite map and photos. The incident is saved to the database and immediately becomes visible on the Live Map.',
       path: '/report',
       cta: 'Open Reporting Workflow',
       badge: 'Database Ingestion',

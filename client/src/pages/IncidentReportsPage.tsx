@@ -205,6 +205,17 @@ export const IncidentReportsPage: React.FC = () => {
                   {r.resolutionStatus === 'in_progress' ? 'In Progress' : r.resolutionStatus}
                 </span>
 
+                <a
+                  href={`/api/reports/${r.id}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 rounded-lg bg-rp-accent/15 border border-rp-accent/30 text-rp-accent hover:bg-rp-accent hover:text-rp-bg font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                  title="Download Official Engineering Audit PDF"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Audit PDF</span>
+                </a>
+
                 <button
                   onClick={() => setSelectedCase(r)}
                   className="px-4 py-2 rounded-lg bg-rp-card border border-rp-border hover:border-rp-accent/50 text-xs font-semibold text-rp-text hover:text-rp-accent transition-colors"
@@ -256,12 +267,23 @@ export const IncidentReportsPage: React.FC = () => {
               </div>
             </div>
 
-            <button
-              onClick={() => setSelectedCase(null)}
-              className="w-full py-2.5 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs uppercase"
-            >
-              Close
-            </button>
+            <div className="flex gap-2">
+              <a
+                href={`/api/reports/${selectedCase.id}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2.5 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs uppercase flex items-center justify-center gap-2 shadow-glow-cyan"
+              >
+                <Download className="w-4 h-4" />
+                Download Engineering Audit PDF
+              </a>
+              <button
+                onClick={() => setSelectedCase(null)}
+                className="px-5 py-2.5 rounded-lg bg-rp-bg border border-rp-border text-rp-text font-heading font-bold text-xs uppercase hover:bg-rp-card transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -42,14 +42,14 @@ const FAQ_DATABASE: FaqItem[] = [
     id: 'faq-1',
     category: 'Getting Started',
     question: 'What is RoadVanta AI and how does it work?',
-    answer: 'RoadVanta AI ("See Risks. Save Roads.") is an AI-powered municipal road safety platform. Citizens upload road photos, our Gemini Vision engine identifies surface defects (potholes, cracks, waterlogging), and verified reports are dispatched directly to local highway authorities for repair.',
+    answer: 'RoadVanta AI ("See Risks. Save Roads.") is an AI-powered municipal road safety platform. Citizens upload road photos, our YOLOv8 Neural Vision engine identifies surface defects (potholes, cracks, waterlogging), and verified reports are dispatched directly to local highway authorities for repair.',
   },
   // 2. AI Detection Studio
   {
     id: 'faq-2',
     category: 'AI Detection Studio',
     question: 'How does the AI Detection Studio analyze road images?',
-    answer: 'When you upload an image, our multimodal Gemini Vision model evaluates pavement condition, detects hazards, provides bounding boxes, estimates severity (Low, Medium, High, Critical), calculates an engineering priority score, and generates safety precautions.',
+    answer: 'When you upload an image, our trained YOLOv8 Neural Vision model evaluates pavement condition, detects hazards, provides bounding boxes, estimates severity (Low, Medium, High, Critical), calculates an engineering priority score, and generates safety precautions.',
   },
   // 3. Uploading Road Images
   {
@@ -130,7 +130,7 @@ const QUICK_PROMPTS = [
   'How does Route Hazard Intelligence work?',
 ];
 
-export const GeminiRoadAssistant: React.FC = () => {
+export const RoadVantaAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'faq' | 'chat' | 'ticket'>('faq');
   const [searchQuery, setSearchQuery] = useState('');
@@ -573,4 +573,4 @@ export const GeminiRoadAssistant: React.FC = () => {
   );
 };
 
-export default GeminiRoadAssistant;
+export default RoadVantaAssistant;
