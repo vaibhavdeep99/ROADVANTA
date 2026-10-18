@@ -1,0 +1,38 @@
+services:
+  # 1. RoadVanta AI - FastAPI YOLOv8 Perception Engine
+  - type: web
+    name: roadvanta-backend
+    runtime: docker
+    dockerfilePath: prism_backend/Dockerfile
+    dockerContext: prism_backend
+    plan: free
+    region: singapore
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: POTHOLE_MODEL_PATH
+        value: ./models/best.pt
+      - key: POTHOLE_CONFIDENCE_THRESHOLD
+        value: "0.15"
+      - key: PRISM_DATABASE_URL
+        value: sqlite:///./prism_road.db
+
+  # 2. RoadVanta AI - React Vite Frontend
+  - type: web
+    name: roadvanta-frontend
+    runtime: static
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    plan: free
+    region: singapore
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_PRISM_API_URL
+        fromService:
+          type: web
+          name: roadvanta-backend
+          property: host
