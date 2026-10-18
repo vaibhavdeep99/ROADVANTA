@@ -48,6 +48,11 @@ client_evidence = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", 
 if os.path.exists(client_evidence):
     app.mount("/evidence", StaticFiles(directory=client_evidence), name="evidence")
 
+client_dataset = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "client", "public", "dataset"))
+if os.path.exists(client_dataset):
+    app.mount("/dataset", StaticFiles(directory=client_dataset), name="dataset")
+
+
 # Pydantic Schemas
 class StatusUpdatePayload(BaseModel):
     workflow_status: Optional[str] = None
