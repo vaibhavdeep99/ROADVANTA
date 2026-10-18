@@ -60,3 +60,5 @@ __pycache__/
 prism_road.db
 prism_backend/uploads/*
 !prism_backend/uploads/.gitkeep
+data/local_training/
+yolov8*.pt
