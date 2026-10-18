@@ -16,6 +16,7 @@ from vision_lab import RoadVisionLab, UPLOAD_DIR
 from detector import detector_adapter
 from video_processor import RoadVideoProcessor
 from seed_data import seed_demo_data
+from pdf_generator import generate_report_pdf
 
 # Initialize DB & Seeds
 init_db()
@@ -46,6 +47,7 @@ class StatusUpdatePayload(BaseModel):
     estimated_severity: Optional[str] = None
     reviewer_name: Optional[str] = "Inspector"
     review_notes: Optional[str] = None
+    repair_image_url: Optional[str] = None
 
 class ReportCreatePayload(BaseModel):
     title: str
@@ -56,6 +58,7 @@ class ReportCreatePayload(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     original_image_url: Optional[str] = None
+    repair_image_url: Optional[str] = None
     reporter_name: Optional[str] = "Anonymous Citizen"
     reporter_email: Optional[str] = None
 
@@ -254,6 +257,7 @@ def list_reports(
             "latitude": r.latitude,
             "longitude": r.longitude,
             "original_image_url": r.original_image_url,
+            "repair_image_url": r.repair_image_url,
             "detections_count": r.detections_count,
             "is_demo": r.is_demo,
             "created_at": r.created_at.isoformat() if r.created_at else None
@@ -312,6 +316,7 @@ def get_report(report_id: str, db: Session = Depends(get_db)):
             "longitude": r.longitude,
             "original_image_url": r.original_image_url,
             "annotated_image_url": r.annotated_image_url,
+            "repair_image_url": r.repair_image_url,
             "model_name": r.model_name,
             "model_confidence": r.model_confidence,
             "detections_count": r.detections_count,
@@ -336,6 +341,63 @@ def get_report(report_id: str, db: Session = Depends(get_db)):
         }
     }
 
+@app.get("/api/reports/{report_id}/pdf")
+def get_report_pdf(report_id: str, db: Session = Depends(get_db)):
+    r = db.query(Report).filter(Report.id == report_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+    
+    rep_dict = {
+        "id": r.id,
+        "report_number": r.report_number,
+        "title": r.title,
+        "description": r.description,
+        "category": r.category,
+        "estimated_severity": r.estimated_severity,
+        "priority_score": r.priority_score,
+        "workflow_status": r.workflow_status,
+        "verification_status": r.verification_status,
+        "latitude": r.latitude,
+        "longitude": r.longitude,
+        "address": r.address,
+        "city": r.city,
+        "original_image_url": r.original_image_url,
+        "repair_image_url": r.repair_image_url,
+        "model_name": r.model_name,
+        "model_confidence": r.model_confidence,
+        "detections_count": r.detections_count,
+        "reporter_name": r.reporter_name,
+        "created_at": r.created_at.isoformat() if r.created_at else None,
+    }
+    
+    det_list = [
+        {
+            "class_name": d.class_name,
+            "confidence": d.confidence,
+            "apparent_area_pct": d.apparent_area_pct,
+        } for d in r.detections
+    ]
+    
+    rev_list = [
+        {
+            "reviewer_name": rev.reviewer_name,
+            "decision": rev.decision,
+            "notes": rev.notes,
+            "created_at": rev.created_at.isoformat() if rev.created_at else None,
+        } for rev in r.reviews
+    ]
+    
+    pdf_bytes = generate_report_pdf(rep_dict, det_list, rev_list)
+    filename = f"{r.report_number or r.id}_Audit_Report.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=\"{filename}\"",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+        }
+    )
+
 @app.post("/api/reports")
 def create_report(payload: ReportCreatePayload, db: Session = Depends(get_db)):
     rep_id = f"PRISM-{uuid.uuid4().hex[:6].upper()}"
@@ -350,6 +412,7 @@ def create_report(payload: ReportCreatePayload, db: Session = Depends(get_db)):
         latitude=payload.latitude,
         longitude=payload.longitude,
         original_image_url=payload.original_image_url,
+        repair_image_url=payload.repair_image_url,
         reporter_name=payload.reporter_name,
         reporter_email=payload.reporter_email,
         workflow_status="submitted",
@@ -362,6 +425,7 @@ def create_report(payload: ReportCreatePayload, db: Session = Depends(get_db)):
     return {"success": True, "data": {"id": rep.id, "report_number": rep.report_number}}
 
 @app.patch("/api/reports/{report_id}")
+@app.patch("/api/reports/{report_id}/status")
 def update_report_status(report_id: str, payload: StatusUpdatePayload, db: Session = Depends(get_db)):
     r = db.query(Report).filter(Report.id == report_id).first()
     if not r:
@@ -373,6 +437,8 @@ def update_report_status(report_id: str, payload: StatusUpdatePayload, db: Sessi
         r.verification_status = payload.verification_status
     if payload.estimated_severity:
         r.estimated_severity = payload.estimated_severity
+    if payload.repair_image_url:
+        r.repair_image_url = payload.repair_image_url
 
     if payload.review_notes:
         rev = Review(

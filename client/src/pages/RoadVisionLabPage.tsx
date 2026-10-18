@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { SidebarLayout } from '../components/SidebarLayout';
+import { AutonomousHazardLifecycle } from '../components/AutonomousHazardLifecycle';
 import prismApi, {
   VisionEnhancementResponse,
   ImageAnalysisResponse,
@@ -409,7 +410,34 @@ export const RoadVisionLabPage: React.FC = () => {
                         }}
                         className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
                       >
-                        ⚡ Try Sample 1: NH-27 Pothole Crater
+                        ⚡ NH-27 Crater
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLoadSample('/samples/sample_pothole_water1.png', 'sample_pothole_water1.png');
+                        }}
+                        className="px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        ⚡ Flooded Pothole
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLoadSample('/samples/sample_traffic_signal_fallen.jpg', 'sample_traffic_signal_fallen.jpg');
+                        }}
+                        className="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        ⚡ Fallen Signal
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLoadSample('/samples/sample_vadodara_karelibag.png', 'sample_vadodara_karelibag.png');
+                        }}
+                        className="px-3 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        ⚡ Vadodara Defect
                       </button>
                       <button
                         onClick={(e) => {
@@ -418,7 +446,7 @@ export const RoadVisionLabPage: React.FC = () => {
                         }}
                         className="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
                       >
-                        ⚡ Try Sample 2: Clear Road (0 Defects)
+                        ⚡ Clear Surface (0 Defect)
                       </button>
                     </div>
                   </div>
@@ -552,6 +580,17 @@ export const RoadVisionLabPage: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Autonomous 4-Step Hazard Lifecycle: Detection -> AI Verification -> SLA Assign -> Field Resolution */}
+                <AutonomousHazardLifecycle
+                  reportId={savedReportId || analysisResult.saved_report?.id}
+                  detectedCount={analysisResult.inference.detected_count}
+                  confidence={analysisResult.inference.confidence_score || 0.65}
+                  severity={analysisResult.inference.preliminary_severity}
+                  priorityScore={analysisResult.inference.priority_score}
+                  originalImageUrl={previewUrl}
+                  aiAudit={aiAudit}
+                />
               </div>
             )}
           </div>

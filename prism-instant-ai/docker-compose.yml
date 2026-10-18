@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # POSTGRESQL PRODUCTION DATABASE
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: prism_instant_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: prism_instant_db
+      POSTGRES_USER: prism_admin
+      POSTGRES_PASSWORD: prism_secure_password_example
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prism_admin -d prism_instant_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # FASTAPI BACKEND & COMPUTER VISION INFERENCE SERVICE
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prism_instant_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg2://prism_admin:prism_secure_password_example@postgres:5432/prism_instant_db
+      JWT_SECRET_KEY: 8a93e1b7f0c436573bd241a798547209ab44efd18c9910d54a23bfe4c1d63e90
+      ADMIN_BOOTSTRAP_SECRET: secure_bootstrap_token_initial_admin_setup_only
+      PRIVATE_STORAGE_PATH: /app/storage/private
+      MODEL_WEIGHTS_PATH: /app/models/best.pt
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173
+    volumes:
+      - private_storage:/app/storage/private
+      - ../prism_backend/models:/app/models:ro
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ============================================================================
+  # REACT VITE TAILWIND FRONTEND
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: prism_instant_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  private_storage:

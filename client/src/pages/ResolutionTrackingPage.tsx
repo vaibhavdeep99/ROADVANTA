@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { SidebarLayout } from '../components/SidebarLayout';
 import { Report, ResolutionStatus } from '../types';
+import prismApi, { getAssetUrl } from '../services/prismApi';
 
 export const ResolutionTrackingPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
@@ -22,12 +23,46 @@ export const ResolutionTrackingPage: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [triageOpen, setTriageOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<ResolutionStatus>('in_progress');
-  const [assignedDept, setAssignedDept] = useState('');
+  const [assignedDept, setAssignedDept] = useState('Public Works Dept (PWD)');
+  const [repairPhoto, setRepairPhoto] = useState('/evidence/repair_asphalt_patching.jpg');
+  const [reviewNotes, setReviewNotes] = useState('');
 
   const fetchReports = async () => {
     try {
+      const prismData = await prismApi.getReports();
+      if (prismData && prismData.length > 0) {
+        const mapped: Report[] = prismData.map((p) => ({
+          id: p.id,
+          reportNumber: p.report_number,
+          title: p.title,
+          description: p.description,
+          category: p.category as any,
+          estimatedSeverity: (p.estimated_severity || 'moderate') as any,
+          priorityScore: p.priority_score,
+          resolutionStatus: (p.workflow_status === 'resolved' ? 'resolved' : p.workflow_status === 'under_inspection' || p.workflow_status === 'assigned' ? 'in_progress' : 'submitted') as any,
+          upvotesCount: p.detections_count || 1,
+          reportedBy: p.is_demo ? 'Field Patrol AI' : 'Citizen Inspector',
+          createdAt: p.created_at || new Date().toISOString(),
+          originalImageUrl: getAssetUrl(p.original_image_url),
+          repairImageUrl: getAssetUrl(p.repair_image_url),
+          repair_image_url: p.repair_image_url || undefined,
+          city: p.city,
+          address: p.address,
+          latitude: p.latitude || 22.7196,
+          longitude: p.longitude || 75.8577,
+          isDemo: p.is_demo,
+          assignedDepartment: 'Public Works Dept (PWD)',
+        }));
+        setReports(mapped);
+        return;
+      }
+    } catch (e) {
+      console.warn('Prism backend fallback:', e);
+    }
+
+    try {
       const res = await axios.get('/api/v1/reports');
-      if (res.data.success) {
+      if (res.data.success && Array.isArray(res.data.data)) {
         setReports(res.data.data);
       }
     } catch (e) {
@@ -39,11 +74,18 @@ export const ResolutionTrackingPage: React.FC = () => {
     fetchReports();
   }, []);
 
+  const counts = {
+    all: reports.length,
+    pending: reports.filter((r) => r.resolutionStatus === 'submitted' || r.resolutionStatus === 'awaiting_verification').length,
+    inProgress: reports.filter((r) => r.resolutionStatus === 'in_progress' || r.resolutionStatus === 'assigned').length,
+    resolved: reports.filter((r) => r.resolutionStatus === 'resolved').length,
+  };
+
   const tabs = [
-    { id: 'All', label: 'All', count: 54 },
-    { id: 'Pending', label: 'Pending', count: 12 },
-    { id: 'In Progress', label: 'In Progress', count: 18 },
-    { id: 'Resolved', label: 'Resolved', count: 24 },
+    { id: 'All', label: 'All', count: counts.all },
+    { id: 'Pending', label: 'Pending', count: counts.pending },
+    { id: 'In Progress', label: 'In Progress', count: counts.inProgress },
+    { id: 'Resolved', label: 'Resolved', count: counts.resolved },
   ];
 
   const filteredReports = reports.filter((r) => {
@@ -58,18 +100,44 @@ export const ResolutionTrackingPage: React.FC = () => {
     if (!selectedReport) return;
 
     try {
-      const res = await axios.patch(`/api/v1/reports/${selectedReport.id}`, {
-        resolutionStatus: newStatus,
-        assignedDepartment: assignedDept,
-      });
-
-      if (res.data.success) {
-        toast.success(`Updated status to ${newStatus}`);
-        setReports((prev) =>
-          prev.map((r) => (r.id === selectedReport.id ? res.data.data : r))
-        );
-        setTriageOpen(false);
+      // 1. Update in PRISM SQLite backend
+      try {
+        await prismApi.updateReportStatus(selectedReport.id, {
+          workflow_status: newStatus === 'resolved' ? 'resolved' : 'under_inspection',
+          verification_status: 'verified',
+          reviewer_name: assignedDept,
+          review_notes: reviewNotes || (newStatus === 'resolved' ? 'Compacted cold-mix asphalt patch verified.' : 'Dispatched inspection crew.'),
+          repair_image_url: newStatus === 'resolved' ? repairPhoto : undefined,
+        });
+      } catch (err) {
+        console.warn('Prism direct update fallback:', err);
       }
+
+      // 2. Update in Express backend if applicable
+      try {
+        await axios.patch(`/api/v1/reports/${selectedReport.id}`, {
+          resolutionStatus: newStatus,
+          assignedDepartment: assignedDept,
+        });
+      } catch (err) {
+        // Ignored if only in PRISM DB
+      }
+
+      toast.success(`Updated status to ${newStatus}`);
+      setReports((prev) =>
+        prev.map((r) =>
+          r.id === selectedReport.id
+            ? {
+                ...r,
+                resolutionStatus: newStatus,
+                assignedDepartment: assignedDept,
+                repairImageUrl: newStatus === 'resolved' ? getAssetUrl(repairPhoto) : r.repairImageUrl,
+                repair_image_url: newStatus === 'resolved' ? repairPhoto : r.repair_image_url,
+              }
+            : r
+        )
+      );
+      setTriageOpen(false);
     } catch (err) {
       toast.error('Failed to update resolution status');
     }
@@ -166,17 +234,26 @@ export const ResolutionTrackingPage: React.FC = () => {
                       {r.assignedDepartment || 'Road Maintenance Dept'}
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={() => {
-                          setSelectedReport(r);
-                          setNewStatus(r.resolutionStatus);
-                          setAssignedDept(r.assignedDepartment || 'Public Works Dept');
-                          setTriageOpen(true);
-                        }}
-                        className="px-3 py-1 rounded-lg bg-rp-card border border-rp-border hover:border-rp-accent/50 text-rp-text hover:text-rp-accent font-semibold text-xs transition-colors"
-                      >
-                        View & Triage
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {r.resolutionStatus === 'resolved' && (r.repairImageUrl || r.repair_image_url) && (
+                          <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+                            <CheckCircle2 className="w-3 h-3" /> Repaired
+                          </span>
+                        )}
+                        <button
+                          onClick={() => {
+                            setSelectedReport(r);
+                            setNewStatus(r.resolutionStatus);
+                            setAssignedDept(r.assignedDepartment || 'Public Works Dept (PWD)');
+                            setRepairPhoto(r.repair_image_url || '/evidence/repair_asphalt_patching.jpg');
+                            setReviewNotes('');
+                            setTriageOpen(true);
+                          }}
+                          className="px-3 py-1 rounded-lg bg-rp-card border border-rp-border hover:border-rp-accent/50 text-rp-text hover:text-rp-accent font-semibold text-xs transition-colors"
+                        >
+                          View & Triage
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -186,30 +263,105 @@ export const ResolutionTrackingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal for Status Change */}
+      {/* Modal for Status Change & Repair Evidence */}
       {triageOpen && selectedReport && (
-        <div className="fixed inset-0 z-50 bg-rp-bg/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-rp-card-elevated border border-rp-border rounded-2xl max-w-md w-full p-6 shadow-2xl">
-            <h3 className="font-heading font-bold text-lg text-rp-text mb-4">
-              Update Resolution Pipeline
-            </h3>
+        <div className="fixed inset-0 z-50 bg-rp-bg/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-rp-card-elevated border border-rp-border rounded-2xl max-w-lg w-full p-6 shadow-2xl my-8">
+            <div className="flex items-start justify-between border-b border-rp-border pb-3 mb-4">
+              <div>
+                <span className="font-mono text-rp-accent text-xs font-bold block">
+                  {selectedReport.reportNumber || `RP-${selectedReport.id.slice(0, 8)}`}
+                </span>
+                <h3 className="font-heading font-bold text-base text-rp-text">
+                  {selectedReport.title || 'Road Hazard Resolution Pipeline'}
+                </h3>
+                <p className="text-xs text-rp-text-muted mt-0.5">
+                  {selectedReport.address}
+                </p>
+              </div>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                selectedReport.estimatedSeverity === 'critical' || selectedReport.estimatedSeverity === 'high'
+                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+              }`}>
+                {selectedReport.estimatedSeverity}
+              </span>
+            </div>
+
+            {/* Before / After Evidence Images */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rp-text-muted block">
+                  Reported Damage Photo
+                </span>
+                <div className="h-28 rounded-xl bg-black border border-rp-border overflow-hidden">
+                  <img
+                    src={selectedReport.originalImageUrl}
+                    alt="Reported Damage"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rp-text-muted block">
+                  {newStatus === 'resolved' ? 'Repair Proof Evidence' : 'Field Inspection Status'}
+                </span>
+                <div className="h-28 rounded-xl bg-black border border-rp-border overflow-hidden flex items-center justify-center text-center p-2">
+                  {newStatus === 'resolved' ? (
+                    <img
+                      src={getAssetUrl(repairPhoto)}
+                      alt="Repair Evidence"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-[11px] text-rp-text-muted flex flex-col items-center gap-1">
+                      <Clock className="w-5 h-5 text-amber-400" />
+                      <span>Pending Repair Verification</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
             <form onSubmit={handleUpdate} className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-rp-text-muted uppercase block mb-1">
-                  Resolution Status
+                  Resolution Pipeline Status
                 </label>
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value as ResolutionStatus)}
                   className="w-full px-3 py-2 bg-rp-bg border border-rp-border rounded-lg text-xs text-rp-text"
                 >
-                  <option value="submitted">Submitted</option>
-                  <option value="assigned">Assigned</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="resolved">Resolved</option>
+                  <option value="submitted">Submitted (Awaiting Triage)</option>
+                  <option value="in_progress">In Progress (Field Crew Dispatched)</option>
+                  <option value="resolved">Resolved (Repaired & Audited)</option>
                 </select>
               </div>
+
+              {newStatus === 'resolved' && (
+                <div>
+                  <label className="text-xs font-bold text-rp-text-muted uppercase block mb-1">
+                    Select Official PWD Repair Proof Evidence
+                  </label>
+                  <select
+                    value={repairPhoto}
+                    onChange={(e) => setRepairPhoto(e.target.value)}
+                    className="w-full px-3 py-2 bg-rp-bg border border-rp-border rounded-lg text-xs text-rp-text font-mono"
+                  >
+                    <option value="/evidence/repair_asphalt_patching.jpg">
+                      repair_asphalt_patching.jpg (Compacted Cold-Mix Pothole Patch)
+                    </option>
+                    <option value="/evidence/repair_highway_paving.jpg">
+                      repair_highway_paving.jpg (Heavy Highway Resurfacing & Paving)
+                    </option>
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="text-xs font-bold text-rp-text-muted uppercase block mb-1">
@@ -227,6 +379,19 @@ export const ResolutionTrackingPage: React.FC = () => {
                 </select>
               </div>
 
+              <div>
+                <label className="text-xs font-bold text-rp-text-muted uppercase block mb-1">
+                  Engineering Review / Inspection Notes
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Surface compacted with vibratory roller. 0mm gradient deviation."
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  className="w-full px-3 py-2 bg-rp-bg border border-rp-border rounded-lg text-xs text-rp-text placeholder:text-rp-text-muted"
+                />
+              </div>
+
               <div className="flex justify-end gap-2 pt-3 border-t border-rp-border">
                 <button
                   type="button"
@@ -237,9 +402,9 @@ export const ResolutionTrackingPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs"
+                  className="px-4 py-2 rounded-lg bg-rp-accent text-rp-bg font-heading font-bold text-xs shadow-glow-cyan"
                 >
-                  Save Status
+                  Commit Status & Evidence
                 </button>
               </div>
             </form>

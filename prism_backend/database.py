@@ -2,7 +2,7 @@ import os
 import uuid
 import datetime
 from typing import Optional, List
-from sqlalchemy import create_engine, Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import create_engine, Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text, text
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 DB_URL = os.getenv("DATABASE_URL", "sqlite:///./prism_road.db")
@@ -37,6 +37,7 @@ class Report(Base):
     original_image_url = Column(String(500), nullable=True)
     annotated_image_url = Column(String(500), nullable=True)
     enhanced_image_url = Column(String(500), nullable=True)
+    repair_image_url = Column(String(500), nullable=True)
 
     # Detection & Source Metadata
     model_name = Column(String(100), default="YOLOv8-Pothole-Adapter")
@@ -83,6 +84,13 @@ class Review(Base):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+    # Ensure SQLite has latest schema additions without manual migrations
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE reports ADD COLUMN repair_image_url VARCHAR(500)"))
+            conn.commit()
+    except Exception:
+        pass
 
 def get_db():
     db = SessionLocal()

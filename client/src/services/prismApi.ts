@@ -110,6 +110,7 @@ export interface PrismReport {
   longitude: number | null;
   original_image_url: string | null;
   annotated_image_url?: string | null;
+  repair_image_url?: string | null;
   model_name?: string | null;
   model_confidence?: number | null;
   detections_count: number;
@@ -234,6 +235,7 @@ export const prismApi = {
       estimated_severity?: string;
       reviewer_name?: string;
       review_notes?: string;
+      repair_image_url?: string;
     }
   ) {
     const res = await client.patch(`/api/reports/${id}/status`, payload);
@@ -248,6 +250,10 @@ export const prismApi = {
 
   getExportCsvUrl(): string {
     return `${PRISM_API_BASE}/api/reports/export`;
+  },
+
+  getReportPdfUrl(reportId: string): string {
+    return `${PRISM_API_BASE}/api/reports/${reportId}/pdf`;
   },
 
   // 7. Dataset Pipeline & Official Accident Analytics

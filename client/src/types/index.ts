@@ -94,6 +94,8 @@ export interface Report {
   detection?: any;
   resolutionNotes?: string;
   resolutionImageUrl?: string;
+  repairImageUrl?: string;
+  repair_image_url?: string;
   auditLogs?: any[];
   createdAt: string;
   updatedAt?: string;

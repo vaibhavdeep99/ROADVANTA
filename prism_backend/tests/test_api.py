@@ -125,3 +125,20 @@ def test_rdd2022_voc_xml_parser():
         box = parsed["objects"][0]["box_yolo_normalized"]
         assert len(box) == 4
         assert all(0.0 <= val <= 1.0 for val in box)
+
+def test_pdf_report_generation():
+    # 1. Fetch available reports to get an ID
+    res = client.get("/api/reports")
+    assert res.status_code == 200
+    reports = res.json()["data"]
+    assert len(reports) > 0
+    test_id = reports[0]["id"]
+
+    # 2. Request PDF binary stream
+    pdf_res = client.get(f"/api/reports/{test_id}/pdf")
+    assert pdf_res.status_code == 200
+    assert pdf_res.headers["content-type"] == "application/pdf"
+    assert "attachment; filename=" in pdf_res.headers["content-disposition"]
+    # PDF magic bytes "%PDF-"
+    assert pdf_res.content.startswith(b"%PDF-")
+    assert len(pdf_res.content) > 1000
