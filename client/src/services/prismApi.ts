@@ -7,7 +7,8 @@ const defaultBaseUrl =
     ? 'https://prism-road-ai-backend.onrender.com'
     : 'http://127.0.0.1:8000';
 
-const PRISM_API_BASE = import.meta.env.VITE_PRISM_API_URL || defaultBaseUrl;
+const rawBaseUrl = import.meta.env.VITE_PRISM_API_URL || defaultBaseUrl;
+const PRISM_API_BASE = rawBaseUrl.replace(/\/+$/, '');
 
 const client = axios.create({
   baseURL: PRISM_API_BASE,
